@@ -35,16 +35,16 @@
 
       if(error != null && !error.isEmpty())
       {
-        %>
-          <div class="error-msg visible" id="errorMsg"><%= error %></div>
-        <%
-      }
+    %>
+    <div class="error-msg visible" id="errorMsg"><%= error %></div>
+    <%
+    }
 
-      else
-      {
-        %>
-          <div class="error-msg" id="errorMsg"></div>
-        <%
+    else
+    {
+    %>
+    <div class="error-msg" id="errorMsg"></div>
+    <%
       }
 
     %>
@@ -71,13 +71,11 @@
         <input type="password" id="contrasena2" name="contrasena2" autocomplete="new-password" placeholder="••••••••" required minlength="6">
       </div>
 
-      <button class="btn-primary" type="submit">Crear cuenta</button>
+      <button class="btn-primary" type="submit">Continuar →</button>
 
     </form>
 
-    <p class="subtitle" style="text-align:center; margin-top:20px;">¿Ya tienes cuenta? <a href="login.jsp">Inicia sesión</a>
-
-    </p>
+    <p class="subtitle" style="text-align:center; margin-top:20px;">¿Ya tienes cuenta? <a href="login.jsp">Inicia sesión</a></p>
 
   </div>
 </main>

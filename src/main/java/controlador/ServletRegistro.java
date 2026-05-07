@@ -1,7 +1,6 @@
 package controlador;
 
 import datos.UsuarioDAO;
-import modelo.Usuario;
 
 import java.io.IOException;
 import javax.servlet.ServletException;
@@ -27,9 +26,9 @@ public class ServletRegistro extends HttpServlet
         req.setCharacterEncoding("UTF-8");
 
         String nombre_usuario = req.getParameter("nombre_usuario");
-        String email          = req.getParameter("email");
-        String contrasena     = req.getParameter("contrasena");
-        String contrasena2    = req.getParameter("contrasena2");
+        String email = req.getParameter("email");
+        String contrasena = req.getParameter("contrasena");
+        String contrasena2 = req.getParameter("contrasena2");
 
         if(nombre_usuario == null || nombre_usuario.trim().isEmpty() || email == null || email.trim().isEmpty() || contrasena == null || contrasena.isEmpty() || contrasena2 == null || contrasena2.isEmpty())
         {
@@ -54,31 +53,20 @@ public class ServletRegistro extends HttpServlet
 
         UsuarioDAO dao = new UsuarioDAO();
 
-        if (dao.busca_email(email.trim()) != null)
+        if(dao.busca_email(email.trim()) != null)
         {
             req.setAttribute("errorRegistro", "Ya existe una cuenta con ese correo electrónico.");
             req.getRequestDispatcher("registro.jsp").forward(req, res);
             return;
         }
 
-        try
-        {
-            Usuario nuevo = new Usuario(nombre_usuario.trim(), email.trim(), contrasena);
+        //Guardar datos en la sesion para usarlos en la siguiente
+        HttpSession sesion = req.getSession();
+        sesion.setAttribute("reg_nombre_usuario", nombre_usuario.trim());
+        sesion.setAttribute("reg_email", email.trim());
+        sesion.setAttribute("reg_contrasena", contrasena);
 
-            String id_generado = dao.insertar(nuevo);
-
-            System.out.println("Nuevo usuario registrado con id: " + id_generado);
-
-            res.sendRedirect("login.jsp?registro=ok");
-
-        }
-
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-
-            req.setAttribute("errorRegistro", "Error al registrar el usuario. Intenta de nuevo.");
-            req.getRequestDispatcher("registro.jsp").forward(req, res);
-        }
+        //Redirige al setup del perfil
+        res.sendRedirect("perfil-setup");
     }
 }
