@@ -32,7 +32,7 @@
 
     <div class="error-msg" id="errorMsg">Usuario o contraseña incorrectos.</div>
 
-    <form method="post" action="usuarios" onsubmit="return validar(event)">
+    <form method="post" action="login" onsubmit="return validar(event)">
 
       <div class="field">
         <label for="email">Correo electrónico</label>

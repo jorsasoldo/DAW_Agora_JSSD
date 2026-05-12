@@ -1,7 +1,7 @@
 package controlador;
 
 import datos.UsuarioDAO;
-
+import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -60,11 +60,14 @@ public class ServletRegistro extends HttpServlet
             return;
         }
 
-        //Guardar datos en la sesion para usarlos en la siguiente
+        //Hashea la contraseña con BCrypt
+        String contrasenaHash = BCrypt.hashpw(contrasena, BCrypt.gensalt(12));
+
+        //Guarda datos en la sesion para usarlos en la siguiente pantalla
         HttpSession sesion = req.getSession();
         sesion.setAttribute("reg_nombre_usuario", nombre_usuario.trim());
         sesion.setAttribute("reg_email", email.trim());
-        sesion.setAttribute("reg_contrasena", contrasena);
+        sesion.setAttribute("reg_contrasena", contrasenaHash); //heash
 
         //Redirige al setup del perfil
         res.sendRedirect("perfil-setup");
