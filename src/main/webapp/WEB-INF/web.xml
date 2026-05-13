@@ -7,4 +7,11 @@
         <welcome-file>login.jsp</welcome-file>
     </welcome-file-list>
 
+    <filter>
+        <filter-name>FiltroJWT</filter-name>
+        <filter-class>seguridad.FiltroJWT</filter-class>
+    </filter>
+
+    <!-- Pondre en un futuro las rutas que requieran autenticacion y no sean de acceso publico -->
+
 </web-app>

@@ -11,7 +11,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Base64;
 
-//AUN ME FALTA USAR JWT debo de investigarlo mas xd
+//JWT se divide en 3 dividiensose en header con el algoritmo que usa
+//el payload que son los datos de usuario
+//y la firrma que es un string de 32 caracteres aleatoreos
+//asi verificando la identidad del usuario ya que si se llegase a modificar algo la firma cambia
 
 @WebServlet("/perfil-setup")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 5 * 1024 * 1024, maxRequestSize = 10 * 1024 * 1024)
