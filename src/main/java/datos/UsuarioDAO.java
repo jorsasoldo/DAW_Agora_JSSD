@@ -68,16 +68,16 @@ public class UsuarioDAO
             return null;
     }
 
-    public boolean actualizar(String id, String biografia, String fotoPerfil)
+    public boolean actualizar(String id, String biografia, String foto_perfil)
     {
-        var resultado = coleccion.updateOne(Filters.eq("_id", new ObjectId(id)), Updates.combine(Updates.set("biografia",   biografia), Updates.set("foto_perfil", fotoPerfil)));
+        var resultado = coleccion.updateOne(Filters.eq("_id", new ObjectId(id)), Updates.combine(Updates.set("biografia",   biografia), Updates.set("foto_perfil", foto_perfil)));
 
         return resultado.getModifiedCount() > 0;
     }
 
-    public boolean incrementa_karma(String usuarioId, int valor)
+    public boolean incrementa_karma(String usuario_id, int valor)
     {
-        var resultado = coleccion.updateOne(Filters.eq("_id", new ObjectId(usuarioId)), Updates.inc("karma", valor));
+        var resultado = coleccion.updateOne(Filters.eq("_id", new ObjectId(usuario_id)), Updates.inc("karma", valor));
 
         return resultado.getModifiedCount() > 0;
     }
