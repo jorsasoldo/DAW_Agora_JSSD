@@ -16,7 +16,6 @@ import java.util.Base64;
 //y la firrma que es un string de 32 caracteres aleatoreos
 //asi verificando la identidad del usuario ya que si se llegase a modificar algo la firma cambia
 
-@WebServlet("/perfil-setup")
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 5 * 1024 * 1024, maxRequestSize = 10 * 1024 * 1024)
 //Si el archivo pesa menos de 1 MB se mantiene en ram si no se pasa a disco
 //5 MB tamaño maximo de foto

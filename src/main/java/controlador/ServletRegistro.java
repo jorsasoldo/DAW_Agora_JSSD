@@ -1,13 +1,13 @@
 package controlador;
 
 import datos.UsuarioDAO;
-import org.mindrot.jbcrypt.BCrypt;
+
 import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
+import org.mindrot.jbcrypt.BCrypt;
 
-@WebServlet("/registro")
 public class ServletRegistro extends HttpServlet
 {
 
@@ -53,6 +53,7 @@ public class ServletRegistro extends HttpServlet
 
         UsuarioDAO dao = new UsuarioDAO();
 
+
         if(dao.busca_email(email.trim()) != null)
         {
             req.setAttribute("errorRegistro", "Ya existe una cuenta con ese correo electrónico.");
@@ -63,7 +64,7 @@ public class ServletRegistro extends HttpServlet
         //Hashea la contraseña con BCrypt
         String contrasenaHash = BCrypt.hashpw(contrasena, BCrypt.gensalt(12));
 
-        //Guarda datos en la sesion para usarlos en la siguiente pantalla
+        //Guardar datos en la sesion para usarlos en la siguiente pantalla
         HttpSession sesion = req.getSession();
         sesion.setAttribute("reg_nombre_usuario", nombre_usuario.trim());
         sesion.setAttribute("reg_email", email.trim());

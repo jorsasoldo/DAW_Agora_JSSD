@@ -12,6 +12,93 @@
         <filter-class>seguridad.FiltroJWT</filter-class>
     </filter>
 
-    <!-- Pondre en un futuro las rutas que requieran autenticacion y no sean de acceso publico -->
+    <filter-mapping>
+        <filter-name>FiltroJWT</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>ServletLogin</servlet-name>
+        <servlet-class>controlador.ServletLogin</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ServletLogin</servlet-name>
+        <url-pattern>/login</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ServletRegistro</servlet-name>
+        <servlet-class>controlador.ServletRegistro</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ServletRegistro</servlet-name>
+        <url-pattern>/registro</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ServletPerfilSetup</servlet-name>
+        <servlet-class>controlador.ServletPerfilSetup</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ServletPerfilSetup</servlet-name>
+        <url-pattern>/perfil-setup</url-pattern>
+    </servlet-mapping>
+
+    <!-- Servlets de la API REST-->
+    <!-- Autenticacion -->
+    <servlet>
+        <servlet-name>ApiAuth</servlet-name>
+        <servlet-class>controlador.api.ApiAuthServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApiAuth</servlet-name>
+        <url-pattern>/api/auth/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ApiUsuarios</servlet-name>
+        <servlet-class>controlador.api.ApiUsuariosServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApiUsuarios</servlet-name>
+        <url-pattern>/api/usuarios/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ApiComunidades</servlet-name>
+        <servlet-class>controlador.api.ApiComunidadesServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApiComunidades</servlet-name>
+        <url-pattern>/api/comunidades/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ApiPublicaciones</servlet-name>
+        <servlet-class>controlador.api.ApiPublicacionesServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApiPublicaciones</servlet-name>
+        <url-pattern>/api/publicaciones/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ApiComentarios</servlet-name>
+        <servlet-class>controlador.api.ApiComentariosServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApiComentarios</servlet-name>
+        <url-pattern>/api/comentarios/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ApiVotos</servlet-name>
+        <servlet-class>controlador.api.ApiVotosServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ApiVotos</servlet-name>
+        <url-pattern>/api/votos/*</url-pattern>
+    </servlet-mapping>
+
 
 </web-app>
