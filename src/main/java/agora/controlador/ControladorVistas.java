@@ -1,32 +1,21 @@
 package agora.controlador;
 
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class ControladorVistas
 {
-    @GetMapping("/login")
-    public String login()
+    @GetMapping(value = "/")
+    public String raiz()
     {
-        return "login";
+        return "forward:/index.html";
     }
 
-    @GetMapping("/")
-    public String inicio()
+    @GetMapping(value = "/{path:^(?!api).*}", produces = MediaType.TEXT_HTML_VALUE)
+    public String spa()
     {
-        return "redirect:/login";
-    }
-
-    @GetMapping("/registro")
-    public String registro()
-    {
-        return "registro";
-    }
-
-    @GetMapping("/perfil-setup")
-    public String perfilSetup()
-    {
-        return "perfil-setup";
+        return "forward:/index.html";
     }
 }
