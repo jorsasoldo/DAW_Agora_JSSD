@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+
 import Login from './paginas/Login'
+
 import Registro from './paginas/Registro'
+
 import PerfilSetup from './paginas/PerfilSetup'
 
 function App()

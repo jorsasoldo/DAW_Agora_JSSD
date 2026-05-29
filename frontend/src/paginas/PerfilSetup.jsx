@@ -62,7 +62,7 @@ export default function PerfilSetup()
             return
         }
 
-        const body = { biografia: biografia }
+        const body = {biografia: biografia}
 
         if(foto)
             body.foto_perfil = foto
@@ -105,7 +105,7 @@ export default function PerfilSetup()
                         <img src="/imagenes/Agora_logo.png" alt="agora Logo" className="card-logo-float" />
                     </div>
                     <h1 className="card-brand">agora</h1>
-                    <p className="card-tagline" style={{marginBottom:'24px'}}>Personaliza tu perfil</p>
+                    <p className="card-tagline" style={{marginBottom:'25px'}}>Personaliza tu perfil</p>
 
                     {error && <div className="error-msg visible">{error}</div>}
 
@@ -124,7 +124,9 @@ export default function PerfilSetup()
                                 />
                                 {hover && (
                                     <div style={{position:'absolute', inset:0, borderRadius:'50%', background:'rgba(42,112,236,0.55)', display:'flex', alignItems:'center', justifyContent:'center'}}>
-                                        {/* Icono cámara */}
+                                        {
+                                            //Icono de la camara
+                                        }
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                              strokeWidth={2} stroke="white" style={{width:'30px', height:'30px'}}>
                                             <path strokeLinecap="round" strokeLinejoin="round"
@@ -135,7 +137,7 @@ export default function PerfilSetup()
                                     </div>
                                 )}
                             </div>
-                            <p style={{fontSize:'11px', color:'#878a8c'}}>Haz clic en la imagen para cambiar tu foto</p>
+                            <p style={{fontSize:'10px', color:'#878a8c'}}>Haz clic en la imagen para cambiar tu foto de perfil</p>
                             <input
                                 ref={ref}
                                 type="file"
@@ -151,7 +153,7 @@ export default function PerfilSetup()
                                 id="biografia"
                                 value={biografia}
                                 onChange={e => setBiografia(e.target.value)}
-                                placeholder="Cuéntanos un poco sobre ti…"
+                                placeholder="Cuéntanos un poco sobre ti"
                                 maxLength={300}
                                 style={{width:'100%', minHeight:'140px', boxSizing:'border-box'}}
                             />

@@ -73,7 +73,7 @@ export default function Login()
                                 id="email"
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
-                                placeholder="correo@ejemplo.com"
+                                placeholder=""
                                 required
                             />
                         </div>
@@ -84,7 +84,7 @@ export default function Login()
                                 id="contrasena"
                                 value={contrasena}
                                 onChange={e => setContrasena(e.target.value)}
-                                placeholder="••••••••"
+                                placeholder=""
                                 required
                             />
                         </div>
