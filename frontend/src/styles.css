@@ -595,6 +595,7 @@ th
     position: relative;
     display: flex;
     align-items: center;
+    margin: 0 auto;
 }
 
 .barra-busqueda-icono-busqueda
@@ -648,7 +649,6 @@ th
     align-items: center;
     gap: 10px;
     flex-shrink: 0;
-    margin-left: auto;
 }
 
 .barra-busqueda-usuario

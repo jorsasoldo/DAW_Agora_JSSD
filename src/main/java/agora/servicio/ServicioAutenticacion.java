@@ -64,4 +64,9 @@ public class ServicioAutenticacion
 
         return new resultado_registro(token, guardado);
     }
+
+    public Usuario busca_por_id(String id)
+    {
+        return repositorio_usuario.findById(id).orElse(null);
+    }
 }

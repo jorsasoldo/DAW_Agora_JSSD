@@ -34,7 +34,12 @@ public class ControladorAutenticacion
         String nombre_usuario = (String)req.getAttribute("jwt_nombre_usuario");
         String rol = (String)req.getAttribute("jwt_rol");
 
-        return ResponseEntity.ok(Map.of("id", id_usuario, "nombre_usuario", nombre_usuario, "email", email, "rol", rol));
+        //Busca el usuario en mongo para encontrar su foto de perfil
+        Usuario u = servicio_autenticacion.busca_por_id(id_usuario);
+
+        String foto_perfil = (u != null && u.getFotoPerfil() != null) ? u.getFotoPerfil() : "";
+
+        return ResponseEntity.ok(Map.of("id", id_usuario, "nombre_usuario", nombre_usuario, "email", email, "rol", rol, "foto_perfil", foto_perfil));
     }
 
     @PostMapping("/login")
