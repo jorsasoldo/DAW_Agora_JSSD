@@ -558,3 +558,365 @@ th
     margin-bottom: 10px;
     text-align: center;
 }
+
+.barra-busqueda
+{
+    background: linear-gradient(135deg, #2a70ec 0%, #1a55c0 100%);
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    box-shadow: 0 2px 12px rgba(42, 112, 236, 0.35);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+}
+
+.barra-busqueda-logo
+{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    flex-shrink: 0;
+}
+
+.navbar-logo-img
+{
+    height: 32px;
+    width: auto;
+}
+
+.barra-busqueda-search
+{
+    flex: 1;
+    max-width: 600px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.barra-busqueda-icono-busqueda
+{
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.navbar-search-icon-img
+{
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+.navbar-search-input
+{
+    width: 100%;
+    height: 36px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    font-size: 14px;
+    padding: 0 16px 0 38px;
+    outline: none;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.navbar-search-input::placeholder
+{
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.navbar-search-input:focus
+{
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.barra-busqueda-acciones
+{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.barra-busqueda-usuario
+{
+    position: relative;
+}
+
+.navbar-avatar-btn
+{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    border-radius: 20px;
+    padding: 4px 10px 4px 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    color: #fff;
+}
+
+.navbar-avatar-btn:hover
+{
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.navbar-avatar-img
+{
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.barra-busqueda-avatar-iniciales
+{
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    letter-spacing: 0.5px;
+}
+
+.navbar-username
+{
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.navbar-chevron
+{
+    color: rgba(255, 255, 255, 0.8);
+    transition: transform 0.2s;
+}
+
+.navbar-chevron--abierto
+{
+    transform: rotate(180deg);
+}
+
+.barra-busqueda-dropdown
+{
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #fff;
+    border: 1px solid #e8edf5;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(26, 85, 192, 0.15), 0 2px 8px rgba(0, 0, 0, 0.08);
+    min-width: 220px;
+    overflow: hidden;
+    animation: dropdown-aparecer 0.15s ease;
+}
+
+@keyframes dropdown-aparecer
+{
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.barra-busqueda-dropdown-header
+{
+    padding: 14px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.barra-busqueda-dropdown-nombre
+{
+    font-size: 14px;
+    font-weight: 700;
+    color: #1c1c1c;
+}
+
+.barra-busqueda-dropdown-email
+{
+    font-size: 12px;
+    color: #878a8c;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.barra-busqueda-dropdown-divider
+{
+    height: 1px;
+    background: #edeff1;
+    margin: 0;
+}
+
+.navbar-dropdown-item
+{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    color: #1c1c1c;
+    text-decoration: none;
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.navbar-dropdown-item:hover
+{
+    background: #f6f7f8;
+}
+
+.navbar-dropdown-item svg
+{
+    color: #576069;
+    flex-shrink: 0;
+}
+
+.navbar-dropdown-item--logout
+{
+    color: #c0392b;
+}
+
+.navbar-dropdown-item--logout svg
+{
+    color: #c0392b;
+}
+
+.barra-busqueda-botns-aut
+{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.navbar-btn-login
+{
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 20px;
+    border: 1.5px solid rgba(255, 255, 255, 0.6);
+    background: transparent;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.navbar-btn-login:hover
+{
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #fff;
+}
+
+.navbar-btn-registro
+{
+    height: 34px;
+    padding: 0 16px;
+    border-radius: 20px;
+    border: none;
+    background: #fff;
+    color: #2a70ec;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    transition: background 0.15s, box-shadow 0.15s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.navbar-btn-registro:hover
+{
+    background: #f0f5ff;
+}
+
+.layout-contenedor
+{
+    display: flex;
+    gap: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    align-items: flex-start;
+}
+
+.layout-main--con-sidebar
+{
+    flex: 1;
+    min-width: 0;
+}
+
+.layout-main--completo
+{
+    flex: 1;
+    min-width: 0;
+}
+
+.layout-sidebar
+{
+    width: 312px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 80px;
+}
+
+@media (max-width: 960px)
+{
+    .layout-contenedor
+    {
+        flex-direction: column;
+    }
+    .layout-sidebar
+    {
+        width: 100%;
+        position: static;
+    }
+    .navbar-username
+    {
+        display: none;
+    }
+}
+
+@media (max-width: 600px)
+{
+    .navbar-logo-letra
+    {
+        display: none;
+    }
+    .navbar-search-input
+    {
+        font-size: 13px;
+    }
+}
