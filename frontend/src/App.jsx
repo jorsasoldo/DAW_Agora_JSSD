@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import {BrowserRouter, Routes, Route, Navigate} from 'react-router-dom'
 
 import Login from './paginas/Login'
 
@@ -6,9 +6,15 @@ import Registro from './paginas/Registro'
 
 import PerfilSetup from './paginas/PerfilSetup'
 
+import RutaProtegida from './componentes/RutaProtegida'
+
+import RutaPublica from './componentes/RutaPublica'
+
 function App()
 {
-  return (<BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route path="/registro" element={<Registro />} /><Route path="/perfil-setup" element={<PerfilSetup />} /><Route path="/" element={<Navigate to="/login" replace />} /></Routes></BrowserRouter>)
+  //Rutas publicas redirigen al inicio si ya hay una sesion
+  //Rutas protegidas redirigen al login si no hay una sesion
+  return (<BrowserRouter><Routes>{}<Route path="/login" element={<RutaPublica><Login /></RutaPublica>} /><Route path="/registro" element={<RutaPublica><Registro /></RutaPublica>} /><Route path="/perfil-setup" element={<RutaPublica><PerfilSetup /></RutaPublica>} />{}{}<Route path="/" element={<RutaProtegida><div>Feed</div></RutaProtegida>} /><Route path="*" element={<Navigate to="/" replace />} /></Routes></BrowserRouter>)
 }
 
 export default App

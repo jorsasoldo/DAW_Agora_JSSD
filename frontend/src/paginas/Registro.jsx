@@ -1,4 +1,5 @@
 import {useState} from 'react'
+
 import {useNavigate} from 'react-router-dom'
 
 export default function Registro()
@@ -10,7 +11,7 @@ export default function Registro()
     const [error, setError] = useState('')
     const navigate  = useNavigate()
 
-    async function handleSubmit(e)
+    async function maneja_registro(e)
     {
         e.preventDefault()
 
@@ -36,25 +37,25 @@ export default function Registro()
 
         try
         {
-            const res = await fetch('/api/auth/registro', {method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ nombreUsuario: nombre, email, contrasena: cont })})
+            const resp = await fetch('/api/auth/registro', {method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ nombreUsuario: nombre, email, contrasena: cont })})
 
-            if(!res.ok)
+            if(!resp.ok)
             {
-                const texto = await res.text()
+                const texto = await resp.text()
                 console.error('Error del servidor:', texto)
 
                 throw new Error('Error en el servidor revisa la consola del navegador')
             }
 
-            const data = await res.json()
-            sessionStorage.setItem('reg_usuario_id', data.id)
-            sessionStorage.setItem('reg_nombre_usuario', data.nombreUsuario)
+            const datos = await resp.json()
+            sessionStorage.setItem('reg_usuario_id', datos.id)
+            sessionStorage.setItem('reg_nombre_usuario', datos.nombreUsuario)
 
             navigate('/perfil-setup')
 
         }
 
-        catch (e)
+        catch(e)
         {
             setError(e.message)
         }
@@ -78,7 +79,7 @@ export default function Registro()
 
                     {error && <div className="error-msg visible">{error}</div>}
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={maneja_registro}>
                         <div className="field">
                             <label htmlFor="nombreUsuario">Nombre de usuario</label>
                             <input type="text" id="nombreUsuario" value={nombre}

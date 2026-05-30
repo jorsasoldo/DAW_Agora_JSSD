@@ -1,4 +1,5 @@
 import {useState, useRef} from 'react'
+
 import {useNavigate} from 'react-router-dom'
 
 export default function PerfilSetup()
@@ -39,7 +40,7 @@ export default function PerfilSetup()
         lector.readAsDataURL(archivo)
     }
 
-    async function handleSubmit(e)
+    async function maneja_registro(e)
     {
         e.preventDefault()
 
@@ -109,7 +110,7 @@ export default function PerfilSetup()
 
                     {error && <div className="error-msg visible">{error}</div>}
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={maneja_registro}>
                         <div style={{display:'flex', flexDirection:'column', alignItems:'center', marginBottom:'20px', gap:'8px'}}>
                             <div
                                 onClick={() => ref.current.click()}

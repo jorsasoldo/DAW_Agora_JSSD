@@ -1,5 +1,8 @@
 import {useState} from 'react'
+
 import {useNavigate} from 'react-router-dom'
+
+import {useAutentifica} from '../contexto/ContextoUsuario.jsx'
 
 export default function Login()
 {
@@ -7,8 +10,9 @@ export default function Login()
     const [contrasena, setContrasena] = useState('')
     const [error, setError] = useState('')
     const navigate = useNavigate()
+    const {login} = useAutentifica()
 
-    async function handleSubmit(e)
+    async function maneja_login(e)
     {
         e.preventDefault()
 
@@ -22,7 +26,7 @@ export default function Login()
 
         try
         {
-            const resp = await fetch('/api/auth/login', {method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ email, contrasena })})
+            const resp = await fetch('/api/auth/login', {method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({email, contrasena})})
 
             if(!resp.ok)
             {
@@ -33,8 +37,7 @@ export default function Login()
 
             const datos = await resp.json()
 
-            sessionStorage.setItem('usuario_id', datos.id)
-            sessionStorage.setItem('nombre_usuario', datos.nombreUsuario)
+            login({id: datos.id, nombre_usuario: datos.nombre_usuario, email: datos.email, rol: datos.rol})
 
             navigate('/')
 
@@ -65,7 +68,7 @@ export default function Login()
 
                     {error && <div className="error-msg visible">{error}</div>}
 
-                    <form onSubmit={handleSubmit}>
+                    <form onSubmit={maneja_login}>
                         <div className="field">
                             <label htmlFor="email">Correo electrónico</label>
                             <input
@@ -92,7 +95,7 @@ export default function Login()
                     </form>
 
                     <p style={{textAlign:'center', marginTop:'20px'}}>
-                        ¿No tienes cuenta? <a href="/registro">Regístrate</a>
+                        ¿No tienes cuenta? <a href="/Registro">Regístrate</a>
                     </p>
                 </div>
             </main>
