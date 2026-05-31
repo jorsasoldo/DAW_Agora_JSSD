@@ -1,5 +1,7 @@
 import {useState, useEffect, useCallback} from 'react'
+
 import {Link} from 'react-router-dom'
+
 import TarjetaPublicacion from '../componentes/publicacion/TarjetaPublicacion.jsx'
 
 const opciones_orden = [{valor: 'nuevo', etiqueta: 'Nuevo'}, {valor: 'popular', etiqueta: 'Popular'},]
