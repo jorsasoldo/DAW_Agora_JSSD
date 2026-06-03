@@ -5,6 +5,7 @@ import agora.repositorio.RepositorioUsuario;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -63,7 +64,7 @@ public class ControladorUsuario
         String biografia  = body.get("biografia");
         String foto_perfil = body.get("foto_perfil");
 
-        Query q = Query.query(Criteria.where("_id").is(id));
+        Query q = Query.query(Criteria.where("_id").is(new ObjectId(id)));
         Update u = new Update().set("biografia", biografia).set("foto_perfil", foto_perfil);
 
         long modificado = mongo_template.updateFirst(q, u, Usuario.class).getModifiedCount();

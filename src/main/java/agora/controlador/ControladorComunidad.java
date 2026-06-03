@@ -83,27 +83,40 @@ public class ControladorComunidad
     @PostMapping("/{id}/suscribir")
     public ResponseEntity<?> suscribir(@PathVariable String id, HttpServletRequest req)
     {
-        String id_usuario = (String)req.getAttribute("jwt_usuario_id");
-        Comunidad c = repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
-
-        Usuario u = repositorio_usuario.findById(id_usuario).orElse(null);
-
-        if(u != null && u.getComunidadesSuscritas() != null && u.getComunidadesSuscritas().contains(id))
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Ya estas suscrito a esta comunidad"));
-
-        Query q = Query.query(Criteria.where("_id").is(id));
-        mongo_template.updateFirst(q, new Update().inc("total_miembros", 1), Comunidad.class);
-
-        return ResponseEntity.ok(Map.of("mensaje", "Suscripcion exitosa."));
-    }
-
-    @PostMapping("/{id}/desuscribir")
-    public ResponseEntity<?> desuscribir(@PathVariable String id)
-    {
+        String id_usuario = (String) req.getAttribute("jwt_usuario_id");
         repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
 
-        Query q = Query.query(Criteria.where("_id").is(id));
-        mongo_template.updateFirst(q, new Update().inc("total_miembros", -1), Comunidad.class);
+        Usuario u = repositorio_usuario.findById(id_usuario).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        if(u.getComunidadesSuscritas() != null && u.getComunidadesSuscritas().contains(id))
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Ya estas suscrito a esta comunidad"));
+
+        Query qu = Query.query(Criteria.where("_id").is(new ObjectId(id_usuario)));
+        mongo_template.updateFirst(qu, new Update().addToSet("comunidades_suscritas", new ObjectId(id)), Usuario.class);
+
+        Query qc = Query.query(Criteria.where("_id").is(new ObjectId(id)));
+        mongo_template.updateFirst(qc, new Update().inc("total_miembros", 1), Comunidad.class);
+
+        return ResponseEntity.ok(Map.of("mensaje", "Suscripcion exitosa"));
+    }
+
+
+    @PostMapping("/{id}/desuscribir")
+    public ResponseEntity<?> desuscribir(@PathVariable String id, HttpServletRequest req)
+    {
+        String id_usuario = (String) req.getAttribute("jwt_usuario_id");
+        repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
+
+        Usuario u = repositorio_usuario.findById(id_usuario).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        if(u.getComunidadesSuscritas() == null || !u.getComunidadesSuscritas().contains(id))
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "No estas suscrito a esta comunidad"));
+
+        Query qu = Query.query(Criteria.where("_id").is(new ObjectId(id_usuario)));
+        mongo_template.updateFirst(qu, new Update().pull("comunidades_suscritas", new ObjectId(id)), Usuario.class);
+
+        Query qc = Query.query(Criteria.where("_id").is(new ObjectId(id)));
+        mongo_template.updateFirst(qc, new Update().inc("total_miembros", -1), Comunidad.class);
 
         return ResponseEntity.ok(Map.of("mensaje", "Desuscripcion exitosa"));
     }
