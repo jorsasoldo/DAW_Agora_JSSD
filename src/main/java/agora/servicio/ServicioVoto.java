@@ -8,6 +8,7 @@ import agora.repositorio.RepositorioComentario;
 import agora.repositorio.RepositorioPublicacion;
 import agora.repositorio.RepositorioVoto;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -38,10 +39,10 @@ public class ServicioVoto
 
     public Optional<Voto> busca_voto(String usuario_id, String objetivo_id)
     {
-        return repositorio_voto.findByUsuarioIdAndObjetivoId(usuario_id, objetivo_id);
+        return repositorio_voto.findByUsuarioIdAndObjetivoId(new ObjectId(usuario_id), new ObjectId(objetivo_id));
     }
 
-    //Procesa votos para reegistrarlos, cambiarlos o eliminarlos
+    //Procesa votos para registrarlos, cambiarlos o eliminarlos
     public Map<String, Object> procesa_voto(String id_votante, String id_objetivo, String tipo_objetivo, int valor)
     {
         //Valida tipo
@@ -58,9 +59,9 @@ public class ServicioVoto
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "El objetivo votado no existe");
 
         if(id_votante.equals(id_autor_objetivo))
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No puedes votar tus propias publicacione");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No puedes votar tus propias publicaciones");
 
-        Optional<Voto> voto_existente_opt = repositorio_voto.findByUsuarioIdAndObjetivoId(id_votante, id_objetivo);
+        Optional<Voto> voto_existente_opt = repositorio_voto.findByUsuarioIdAndObjetivoId(new ObjectId(id_votante), new ObjectId(id_objetivo));
 
         Map<String, Object> resultado = new HashMap<>();
 
@@ -91,7 +92,7 @@ public class ServicioVoto
             if(valor == 0 || valor == valor_anterior)
             {
                 //Retira voto
-                repositorio_voto.deleteByUsuarioIdAndObjetivoId(id_votante, id_objetivo);
+                repositorio_voto.deleteByUsuarioIdAndObjetivoId(new ObjectId(id_votante), new ObjectId(id_objetivo));
 
                 aplica_puntaje_objetivo(id_objetivo, tipo_objetivo, -valor_anterior);
                 incrementa_karma(id_autor_objetivo, -valor_anterior);
@@ -104,7 +105,7 @@ public class ServicioVoto
             {
                 //Cambia puntuacion
                 int delta = valor - valor_anterior;
-                repositorio_voto.deleteByUsuarioIdAndObjetivoId(id_votante, id_objetivo);
+                repositorio_voto.deleteByUsuarioIdAndObjetivoId(new ObjectId(id_votante), new ObjectId(id_objetivo));
 
                 Voto nuevo = new Voto(id_votante, id_objetivo, tipo_objetivo, id_autor_objetivo, valor);
                 repositorio_voto.save(nuevo);
@@ -133,7 +134,7 @@ public class ServicioVoto
     {
         if("publicacion".equals(tipo))
         {
-            Query q = Query.query(Criteria.where("_id").is(id));
+            Query q = Query.query(Criteria.where("_id").is(new ObjectId(id)));
 
             Update u = new Update().inc("puntaje_votos", delta);
 
@@ -148,14 +149,14 @@ public class ServicioVoto
 
         else
         {
-            Query q = Query.query(Criteria.where("_id").is(id));
+            Query q = Query.query(Criteria.where("_id").is(new ObjectId(id)));
             mongo_template.updateFirst(q, new Update().inc("puntaje_votos", delta), Comentario.class);
         }
     }
 
     private void incrementa_karma(String usuario_id, int valor)
     {
-        Query q = Query.query(Criteria.where("_id").is(usuario_id));
+        Query q = Query.query(Criteria.where("_id").is(new ObjectId(usuario_id)));
         mongo_template.updateFirst(q, new Update().inc("karma", valor), agora.modelo.Usuario.class);
     }
 }

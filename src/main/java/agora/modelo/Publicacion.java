@@ -1,5 +1,6 @@
 package agora.modelo;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -17,8 +18,8 @@ public class Publicacion
     private String enlace;
     @Field("url_imagen")
     private String urlImagen;
-    private String autor;
-    private String comunidad;
+    private ObjectId autor;
+    private ObjectId comunidad;
     @Field("puntaje_votos")
     private int puntajeVotos;
     @Field("votos_positivos")
@@ -40,12 +41,12 @@ public class Publicacion
 
     }
 
-    public Publicacion(String titulo, String tipo, String autor, String comunidad)
+    public Publicacion(String titulo, String tipo, String autorId, String comunidadId)
     {
         this.titulo = titulo;
         this.tipo = tipo;
-        this.autor = autor;
-        this.comunidad = comunidad;
+        this.autor = new ObjectId(autorId);
+        this.comunidad = new ObjectId(comunidadId);
     }
 
     public String getId()
@@ -110,22 +111,22 @@ public class Publicacion
 
     public String getAutor()
     {
-        return autor;
+        return autor != null ? autor.toHexString() : null;
     }
 
-    public void setAutor(String autor)
+    public void setAutor(String autorId)
     {
-        this.autor = autor;
+        this.autor = autorId != null ? new ObjectId(autorId) : null;
     }
 
     public String getComunidad()
     {
-        return comunidad;
+        return comunidad != null ? comunidad.toHexString() : null;
     }
 
-    public void setComunidad(String comunidad)
+    public void setComunidad(String comunidadId)
     {
-        this.comunidad = comunidad;
+        this.comunidad = comunidadId != null ? new ObjectId(comunidadId) : null;
     }
 
     public int getPuntajeVotos()

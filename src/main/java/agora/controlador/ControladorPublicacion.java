@@ -8,6 +8,7 @@ import agora.repositorio.RepositorioPublicacion;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -44,10 +45,10 @@ public class ControladorPublicacion
         List<Publicacion> lista;
 
         if(comunidad != null && comunidad.matches("[0-9a-fA-F]{24}"))
-            lista = repositorio_publicacion.findByComunidad(comunidad, sort);
+            lista = repositorio_publicacion.findByComunidad(new ObjectId(comunidad), sort);
 
         else if(autor != null && autor.matches("[0-9a-fA-F]{24}"))
-            lista = repositorio_publicacion.findByAutor(autor, sort);
+            lista = repositorio_publicacion.findByAutor(new ObjectId(autor), sort);
 
         else
             lista = repositorio_publicacion.findAll(sort);

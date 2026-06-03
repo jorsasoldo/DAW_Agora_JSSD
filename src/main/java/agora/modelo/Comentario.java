@@ -1,11 +1,13 @@
 package agora.modelo;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Document(collection = "COMENTARIO")
 public class Comentario
@@ -13,12 +15,12 @@ public class Comentario
     @Id
     private String id;
     @Field("publicacion_id")
-    private String publicacionId;
-    private String autor;
+    private ObjectId publicacionId;
+    private ObjectId autor;
     private String contenido;
     @Field("padre_id")
-    private String padreId;
-    private List<String> hilo;
+    private ObjectId padreId;
+    private List<ObjectId> hilo;
     @Field("puntaje_votos")
     private int puntajeVotos;
     private boolean eliminado;
@@ -32,10 +34,10 @@ public class Comentario
 
     }
 
-    public Comentario(String publicacionId, String autor, String contenido)
+    public Comentario(String publicacionId, String autorId, String contenido)
     {
-        this.publicacionId = publicacionId;
-        this.autor = autor;
+        this.publicacionId = new ObjectId(publicacionId);
+        this.autor = new ObjectId(autorId);
         this.contenido = contenido;
     }
 
@@ -51,22 +53,22 @@ public class Comentario
 
     public String getPublicacionId()
     {
-        return publicacionId;
+        return publicacionId != null ? publicacionId.toHexString() : null;
     }
 
     public void setPublicacionId(String publicacionId)
     {
-        this.publicacionId = publicacionId;
+        this.publicacionId = publicacionId != null ? new ObjectId(publicacionId) : null;
     }
 
     public String getAutor()
     {
-        return autor;
+        return autor != null ? autor.toHexString() : null;
     }
 
-    public void setAutor(String autor)
+    public void setAutor(String autorId)
     {
-        this.autor = autor;
+        this.autor = autorId != null ? new ObjectId(autorId) : null;
     }
 
     public String getContenido()
@@ -81,22 +83,31 @@ public class Comentario
 
     public String getPadreId()
     {
-        return padreId;
+        return padreId != null ? padreId.toHexString() : null;
     }
 
     public void setPadreId(String padreId)
     {
-        this.padreId = padreId;
+        this.padreId = (padreId != null && !padreId.isBlank()) ? new ObjectId(padreId) : null;
     }
 
     public List<String> getHilo()
     {
-        return hilo;
+        if(hilo == null)
+            return null;
+
+        return hilo.stream().map(ObjectId::toHexString).collect(Collectors.toList());
     }
 
-    public void setHilo(List<String> hilo)
+    public void setHilo(List<String> hiloIds)
     {
-        this.hilo = hilo;
+        if(hiloIds == null)
+        {
+            this.hilo = null;
+            return;
+        }
+
+        this.hilo = hiloIds.stream().map(ObjectId::new).collect(Collectors.toList());
     }
 
     public int getPuntajeVotos()

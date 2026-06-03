@@ -1,5 +1,6 @@
 package agora.modelo;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -10,13 +11,13 @@ public class Voto
     @Id
     private String id;
     @Field("usuario_id")
-    private String usuarioId;
+    private ObjectId usuarioId;
     @Field("objetivo_id")
-    private String objetivoId;
+    private ObjectId objetivoId;
     @Field("tipo_objetivo")
     private String tipoObjetivo;
     @Field("autor_objetivo_id")
-    private String autorObjetivoId;
+    private ObjectId autorObjetivoId;
     @Field("valor")
     private int valor;
 
@@ -27,10 +28,10 @@ public class Voto
 
     public Voto(String usuarioId, String objetivoId, String tipoObjetivo, String autorObjetivoId, int valor)
     {
-        this.usuarioId = usuarioId;
-        this.objetivoId = objetivoId;
+        this.usuarioId = new ObjectId(usuarioId);
+        this.objetivoId = new ObjectId(objetivoId);
         this.tipoObjetivo = tipoObjetivo;
-        this.autorObjetivoId = autorObjetivoId;
+        this.autorObjetivoId = new ObjectId(autorObjetivoId);
         this.valor = valor;
     }
 
@@ -46,22 +47,22 @@ public class Voto
 
     public String getUsuarioId()
     {
-        return usuarioId;
+        return usuarioId != null ? usuarioId.toHexString() : null;
     }
 
     public void setUsuarioId(String usuarioId)
     {
-        this.usuarioId = usuarioId;
+        this.usuarioId = usuarioId != null ? new ObjectId(usuarioId) : null;
     }
 
     public String getObjetivoId()
     {
-        return objetivoId;
+        return objetivoId != null ? objetivoId.toHexString() : null;
     }
 
     public void setObjetivoId(String objetivoId)
     {
-        this.objetivoId = objetivoId;
+        this.objetivoId = objetivoId != null ? new ObjectId(objetivoId) : null;
     }
 
     public String getTipoObjetivo()
@@ -76,12 +77,12 @@ public class Voto
 
     public String getAutorObjetivoId()
     {
-        return autorObjetivoId;
+        return autorObjetivoId != null ? autorObjetivoId.toHexString() : null;
     }
 
     public void setAutorObjetivoId(String autorObjetivoId)
     {
-        this.autorObjetivoId = autorObjetivoId;
+        this.autorObjetivoId = autorObjetivoId != null ? new ObjectId(autorObjetivoId) : null;
     }
 
     public int getValor()

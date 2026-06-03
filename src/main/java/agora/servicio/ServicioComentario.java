@@ -6,6 +6,7 @@ import agora.modelo.Publicacion;
 import agora.repositorio.RepositorioComentario;
 import agora.repositorio.RepositorioPublicacion;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -34,7 +35,7 @@ public class ServicioComentario
 
     public List<Comentario> lista_por_publicacion(String publicacion_id)
     {
-        return repositorio_comentario.findByPublicacionId(publicacion_id);
+        return repositorio_comentario.findByPublicacionId(new ObjectId(publicacion_id));
     }
 
     public Comentario busca_id(String id)
@@ -74,7 +75,7 @@ public class ServicioComentario
         repositorio_comentario.save(nuevo);
 
         //Incrementa contador de comentarios de la publicacion
-        Query q = Query.query(Criteria.where("_id").is(id_publicacion));
+        Query q = Query.query(Criteria.where("_id").is(new ObjectId(id_publicacion)));
         mongo_template.updateFirst(q, new Update().inc("total_comentarios", 1), Publicacion.class);
 
         return nuevo.getId();
@@ -87,11 +88,11 @@ public class ServicioComentario
         if(!c.getAutor().equals(id_usuario) && !"admin".equals(rol))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Solo el autor puede edita_comentario este comentario");
 
-        Query q = Query.query(Criteria.where("_id").is(id));
+        Query q = Query.query(Criteria.where("_id").is(new ObjectId(id)));
         mongo_template.updateFirst(q, new Update().set("contenido", contenido).set("actualizado_en", new Date()), Comentario.class);
     }
 
-    //Marca comentario como elimiado
+    //Marca comentario como eliminado
     public void elimina_suave_cometario(String id, String id_usuario, String rol)
     {
         Comentario c = busca_id(id);
@@ -107,7 +108,7 @@ public class ServicioComentario
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para eliminar este comentario");
         }
 
-        Query q = Query.query(Criteria.where("_id").is(id));
+        Query q = Query.query(Criteria.where("_id").is(new ObjectId(id)));
 
         mongo_template.updateFirst(q, new Update().set("eliminado", true).set("actualizado_en", new Date()), Comentario.class);
     }

@@ -1,5 +1,6 @@
 package agora.modelo;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
@@ -7,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Document(collection = "COMUNIDAD")
 public class Comunidad
@@ -18,11 +20,11 @@ public class Comunidad
     private String banner;
     private String icono;
     private List<Map<String, String>> reglas;
-    private List<String> moderadores;
+    private List<ObjectId> moderadores;
     @Field("total_miembros")
     private int totalMiembros;
     @Field("creado_por")
-    private String creadoPor;
+    private ObjectId creadoPor;
     @Field("creado_en")
     private Date creadoEn;
     @Field("es_privada")
@@ -33,10 +35,10 @@ public class Comunidad
 
     }
 
-    public Comunidad(String nombre, String creado_por)
+    public Comunidad(String nombre, String creadoPorId)
     {
         this.nombre = nombre;
-        this.creadoPor = creado_por;
+        this.creadoPor = new ObjectId(creadoPorId);
     }
 
     public String getId()
@@ -53,6 +55,7 @@ public class Comunidad
     {
         return nombre;
     }
+
     public void setNombre(String nombre)
     {
         this.nombre = nombre;
@@ -100,12 +103,21 @@ public class Comunidad
 
     public List<String> getModeradores()
     {
-        return moderadores;
+        if(moderadores == null)
+            return null;
+
+        return moderadores.stream().map(ObjectId::toHexString).collect(Collectors.toList());
     }
 
-    public void setModeradores(List<String> moderadores)
+    public void setModeradores(List<String> moderadoresIds)
     {
-        this.moderadores = moderadores;
+        if(moderadoresIds == null)
+        {
+            this.moderadores = null;
+            return;
+        }
+
+        this.moderadores = moderadoresIds.stream().map(ObjectId::new).collect(Collectors.toList());
     }
 
     public int getTotalMiembros()
@@ -120,12 +132,12 @@ public class Comunidad
 
     public String getCreadoPor()
     {
-        return creadoPor;
+        return creadoPor != null ? creadoPor.toHexString() : null;
     }
 
-    public void setCreadoPor(String creadoPor)
+    public void setCreadoPor(String creadoPorId)
     {
-        this.creadoPor = creadoPor;
+        this.creadoPor = creadoPorId != null ? new ObjectId(creadoPorId) : null;
     }
 
     public Date getCreadoEn()

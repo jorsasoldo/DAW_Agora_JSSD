@@ -1,13 +1,15 @@
 package agora.modelo;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
-//Spring data solo acepta queries con camel case :((
+//Spring data solo acepta queries con camel case :(
 @Document(collection = "USUARIO")
 public class Usuario
 {
@@ -23,7 +25,7 @@ public class Usuario
     @Field("karma")
     private int karma;
     @Field("comunidades_suscritas")
-    private List<String> comunidadesSuscritas;
+    private List<ObjectId> comunidadesSuscritas;
     @Field("creado_en")
     private Date creadoEn;
     private String rol;
@@ -74,6 +76,7 @@ public class Usuario
     {
         return contrasena;
     }
+
     public void setContrasena(String contrasena)
     {
         this.contrasena = contrasena;
@@ -111,18 +114,28 @@ public class Usuario
 
     public List<String> getComunidadesSuscritas()
     {
-        return comunidadesSuscritas;
+        if(comunidadesSuscritas == null)
+            return null;
+
+        return comunidadesSuscritas.stream().map(ObjectId::toHexString).collect(Collectors.toList());
     }
 
     public void setComunidadesSuscritas(List<String> comunidadesSuscritas)
     {
-        this.comunidadesSuscritas = comunidadesSuscritas;
+        if(comunidadesSuscritas == null)
+        {
+            this.comunidadesSuscritas = null;
+            return;
+        }
+
+        this.comunidadesSuscritas = comunidadesSuscritas.stream().map(ObjectId::new).collect(Collectors.toList());
     }
 
     public Date getCreadoEn()
     {
         return creadoEn;
     }
+
     public void setCreadoEn(Date creadoEn)
     {
         this.creadoEn = creadoEn;

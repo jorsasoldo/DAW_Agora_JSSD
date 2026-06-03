@@ -8,6 +8,7 @@ import agora.repositorio.RepositorioUsuario;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -126,7 +127,7 @@ public class ControladorComunidad
             return ResponseEntity.badRequest().body(Map.of("error", "Id invalido"));
 
         Query q = Query.query(Criteria.where("_id").is(id));
-        mongo_template.updateFirst(q, new Update().addToSet("moderadores", id_nuevo_mod), Comunidad.class);
+        mongo_template.updateFirst(q, new Update().addToSet("moderadores", new ObjectId(id_nuevo_mod)), Comunidad.class);
 
         return ResponseEntity.ok(Map.of("mensaje", "Moderador agregado"));
     }
