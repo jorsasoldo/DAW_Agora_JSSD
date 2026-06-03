@@ -4,6 +4,7 @@ import agora.modelo.Comentario;
 import agora.modelo.Publicacion;
 
 import agora.repositorio.RepositorioComentario;
+import agora.repositorio.RepositorioComunidad;
 import agora.repositorio.RepositorioPublicacion;
 
 import org.bson.types.ObjectId;
@@ -24,12 +25,14 @@ public class ServicioComentario
 {
     private final RepositorioComentario repositorio_comentario;
     private final RepositorioPublicacion repositorio_publicacion;
+    private final RepositorioComunidad repositorio_comunidad;
     private final MongoTemplate mongo_template;
 
-    public ServicioComentario(RepositorioComentario repositorio_comentario, RepositorioPublicacion repositorio_publicacion, MongoTemplate mongo_template)
+    public ServicioComentario(RepositorioComentario repositorio_comentario, RepositorioPublicacion repositorio_publicacion, RepositorioComunidad repositorio_comunidad, MongoTemplate mongo_template)
     {
         this.repositorio_comentario = repositorio_comentario;
         this.repositorio_publicacion = repositorio_publicacion;
+        this.repositorio_comunidad = repositorio_comunidad;
         this.mongo_template = mongo_template;
     }
 
@@ -102,7 +105,7 @@ public class ServicioComentario
         if(!es_autor && !"admin".equals(rol))
         {
             //Verifica si es moderador de la comunidad de la publicacion
-            boolean es_moderador = repositorio_publicacion.findById(c.getPublicacionId()).map(pub -> {return false;}).orElse(false);
+            boolean es_moderador = repositorio_publicacion.findById(c.getPublicacionId()).map(pub -> {agora.modelo.Comunidad comunidad = repositorio_comunidad.findById(pub.getComunidad()).orElse(null); if(comunidad == null) return false; List<String> mods = comunidad.getModeradores(); return mods != null && mods.contains(id_usuario);}).orElse(false);
 
             if(!es_moderador)
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, "No tienes permiso para eliminar este comentario");
