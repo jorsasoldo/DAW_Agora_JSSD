@@ -5,10 +5,10 @@ import {useAutentifica} from '../../contexto/ContextoUsuario.jsx'
 //Formatea el puntaje de votos por ejemplo comvirtiendo 1334 a 1.3k
 function formatea_puntaje(n)
 {
-    if (n >= 1000)
+    if(n >= 1000)
         return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
 
-    if (n <= -1000)
+    if(n <= -1000)
         return '-' + (Math.abs(n) / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
 
     return String(n)
@@ -19,9 +19,9 @@ export default function ComponenteVotos({objetivo_id, tipo_objetivo = 'publicaci
     const {usuario} = useAutentifica()
 
     const [puntaje, setPuntaje] = useState(puntaje_inicial)
-    const [voto_actual, setVotoActual] = useState(0)
+    const [votoActual, setVotoActual] = useState(0)
     const [cargando, setCargando] = useState(false)
-    const [cargando_inicial, setCargandoInicial] = useState(true)
+    const [cargandoInicial, setCargandoInicial] = useState(true)
 
     //Sincroniza puntaje si el padre lo actualiza
     useEffect(() =>
@@ -69,15 +69,15 @@ export default function ComponenteVotos({objetivo_id, tipo_objetivo = 'publicaci
     //Si se envia el mismo valor que tenia se retira el voto
     async function maneja_voto(valor_nuevo)
     {
-        if(!usuario || cargando || cargando_inicial)
+        if(!usuario || cargando || cargandoInicial)
             return;
 
-        const valor_a_enviar = (voto_actual === valor_nuevo) ? 0 : valor_nuevo
+        const valor_a_enviar = (votoActual === valor_nuevo) ? 0 : valor_nuevo
 
-        const delta = valor_a_enviar - voto_actual
+        const delta = valor_a_enviar - votoActual
         const nuevo_puntaje = puntaje + delta
 
-        const voto_previo = voto_actual
+        const voto_previo = votoActual
         const puntaje_previo = puntaje
 
         setVotoActual(valor_a_enviar)
@@ -122,7 +122,7 @@ export default function ComponenteVotos({objetivo_id, tipo_objetivo = 'publicaci
 
     const clase_contenedor = orientacion === 'horizontal' ? 'sistema-votos sistema-votos--horizontal' : 'sistema-votos sistema-votos--vertical'
 
-    const deshabilitado = cargando || cargando_inicial || !usuario
+    const deshabilitado = cargando || cargandoInicial || !usuario
 
     return (
         <div className={clase_contenedor}>
@@ -130,14 +130,14 @@ export default function ComponenteVotos({objetivo_id, tipo_objetivo = 'publicaci
                 //Boton del voto positivo
             }
             <button
-                className={`sistema-votos-btn sistema-votos-btn--arriba ${voto_actual === 1 ? 'sistema-votos-btn--activo-arriba' : ''}`}
+                className={`sistema-votos-btn sistema-votos-btn--arriba ${votoActual === 1 ? 'sistema-votos-btn--activo-arriba' : ''}`}
                 onClick={() => maneja_voto(1)}
                 disabled={deshabilitado}
                 aria-label="Voto positivo"
                 title={!usuario ? 'Inicia sesión para votar' : 'Votar a favor'}
             >
                 <img
-                    src={voto_actual === 1 ? '/imagenes/voto_positivo_lleno.png' : '/imagenes/voto_positivo_vacio.png'}
+                    src={votoActual === 1 ? '/imagenes/voto_positivo_lleno.png' : '/imagenes/voto_positivo_vacio.png'}
                     alt="Voto positivo"
                     width="16"
                     height="16"
@@ -162,14 +162,14 @@ export default function ComponenteVotos({objetivo_id, tipo_objetivo = 'publicaci
                 //Boton de voto negativo
             }
             <button
-                className={`sistema-votos-btn sistema-votos-btn--abajo ${voto_actual === -1 ? 'sistema-votos-btn--activo-abajo' : ''}`}
+                className={`sistema-votos-btn sistema-votos-btn--abajo ${votoActual === -1 ? 'sistema-votos-btn--activo-abajo' : ''}`}
                 onClick={() => maneja_voto(-1)}
                 disabled={deshabilitado}
                 aria-label="Voto negativo"
                 title={!usuario ? 'Inicia sesión para votar' : 'Votar en contra'}
             >
                 <img
-                    src={voto_actual === -1 ? '/imagenes/voto_negativo_lleno.png' : '/imagenes/voto_negativo_vacio.png'}
+                    src={votoActual === -1 ? '/imagenes/voto_negativo_lleno.png' : '/imagenes/voto_negativo_vacio.png'}
                     alt="Voto negativo"
                     width="16"
                     height="16"
