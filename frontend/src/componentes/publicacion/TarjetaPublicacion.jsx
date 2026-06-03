@@ -1,4 +1,8 @@
-import { Link } from 'react-router-dom'
+import {useState} from 'react'
+
+import {Link} from 'react-router-dom'
+
+import ComponenteVotos from './ComponenteVotos.jsx'
 
 //Formatea la fecha/hora de cada publicacion
 function tiempo_relativo(fecha)
@@ -28,24 +32,15 @@ function tiempo_relativo(fecha)
     return entonces.toLocaleDateString('es-MX', {day: 'numeric', month: 'short', year: 'numeric'})
 }
 
-//Formatea el puntaje de votos por ejemplo comvirtiendo 1334 a 1.3k
-function formatea_puntaje(n)
-{
-    if(n >= 1000)
-        return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-
-    if(n <= -1000)
-        return '-' + (Math.abs(n) / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-
-    return String(n)
-}
-
 //Etiquetas de cada tipo de publicacion
 const etiquetas_tipo = {texto: 'Texto', enlace: 'Enlace', imagen: 'Imagen'}
 
 export default function TarjetaPublicacion({ publicacion, nombresComunidades = {}, nombresAutores = {} })
 {
-    const {id, titulo= '', tipo = '', contenido= '', enlace= '', url_imagen= '', autor = '', comunidad = '', puntaje_votos= 0, total_comentarios= 0, etiqueta= '', fijada= false, creado_en,} = publicacion
+    const {id, titulo = '', tipo = '', contenido = '', enlace = '', url_imagen = '', autor = '', comunidad = '', puntaje_votos = 0, total_comentarios = 0, etiqueta = '', fijada = false, creado_en,} = publicacion
+
+    //Estado local del puntaje para que el componente de votos pueda actualizarlo
+    const [puntaje_local, setPuntajeLocal] = useState(puntaje_votos)
 
     const nombre_comunidad = nombresComunidades[comunidad] || comunidad
 
@@ -57,25 +52,28 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
             {
                 //Columna de votos
             }
-            <div className="tarjeta-publicacion-votos">
-                <span className={`tarjeta-publicacion-puntaje ${puntaje_votos > 0 ? 'tarjeta-publicacion-puntaje--positivo' : puntaje_votos < 0 ? 'tarjeta-publicacion-puntaje--negativo' : ''}`}>
-                    {formatea_puntaje(puntaje_votos)}
-                </span>
-                <span className="tarjeta-publicacion-votos-label">votos</span>
-            </div>
+            <ComponenteVotos
+                objetivo_id={id}
+                tipo_objetivo="publicacion"
+                puntaje_inicial={puntaje_local}
+                orientacion="vertical"
+                al_votar={setPuntajeLocal}
+            />
+
             {
                 //Miniatura de imagen
             }
-
             {tipo === 'imagen' && url_imagen &&
                 (
-                <Link to={`/p/${id}`} className="tarjeta-publicacion-miniatura">
-                    <img src={url_imagen} alt={titulo} className="tarjeta-publicacion-miniatura-img" />
-                </Link>
+                    <Link to={`/p/${id}`} className="tarjeta-publicacion-miniatura">
+                        <img src={url_imagen} alt={titulo} className="tarjeta-publicacion-miniatura-img" />
+                    </Link>
                 )
             }
 
-            {}
+            {
+                //Cuerpo principal
+            }
             <div className="tarjeta-publicacion-cuerpo">
 
                 {
@@ -84,12 +82,12 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
                 <div className="tarjeta-publicacion-meta">
                     {nombre_comunidad &&
                         (
-                        <>
-                            <Link to={`/c/${comunidad}`} className="tarjeta-publicacion-comunidad">
-                                c/{nombre_comunidad}
-                            </Link>
-                            <span className="tarjeta-publicacion-separador">·</span>
-                        </>
+                            <>
+                                <Link to={`/c/${comunidad}`} className="tarjeta-publicacion-comunidad">
+                                    c/{nombre_comunidad}
+                                </Link>
+                                <span className="tarjeta-publicacion-separador">·</span>
+                            </>
                         )
                     }
                     <span className="tarjeta-publicacion-autor">
@@ -97,20 +95,22 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
                     </span>
                     {creado_en &&
                         (
-                        <>
-                            <span className="tarjeta-publicacion-separador">·</span>
-                            <span className="tarjeta-publicacion-tiempo">{tiempo_relativo(creado_en)}</span>
-                        </>
+                            <>
+                                <span className="tarjeta-publicacion-separador">·</span>
+                                <span className="tarjeta-publicacion-tiempo">{tiempo_relativo(creado_en)}</span>
+                            </>
                         )
                     }
                     {fijada &&
                         (
-                        <span className="tarjeta-publicacion-fijada">Fijada</span>
+                            <span className="tarjeta-publicacion-fijada">Fijada</span>
                         )
                     }
                 </div>
 
-                {}
+                {
+                    //Titulo
+                }
                 <Link to={`/p/${id}`} className="tarjeta-publicacion-titulo">
                     {titulo}
                 </Link>
@@ -121,26 +121,30 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
                 <div className="tarjeta-publicacion-etiquetas">
                     {tipo &&
                         (
-                        <span className={`tarjeta-publicacion-etiqueta-tipo tarjeta-publicacion-etiqueta-tipo--${tipo}`}>
-                            {etiquetas_tipo[tipo] || tipo}
-                        </span>
+                            <span className={`tarjeta-publicacion-etiqueta-tipo tarjeta-publicacion-etiqueta-tipo--${tipo}`}>
+                                {etiquetas_tipo[tipo] || tipo}
+                            </span>
                         )
                     }
                     {etiqueta &&
                         (
-                        <span className="tarjeta-publicacion-etiqueta-custom">{etiqueta}</span>
+                            <span className="tarjeta-publicacion-etiqueta-custom">{etiqueta}</span>
                         )
                     }
                 </div>
 
-                {}
+                {
+                    //Vista previa del texto
+                }
                 {tipo === 'texto' && contenido &&
                     (
-                    <p className="tarjeta-publicacion-preview">{contenido}</p>
+                        <p className="tarjeta-publicacion-preview">{contenido}</p>
                     )
                 }
 
-                {}
+                {
+                    //Enlace
+                }
                 {tipo === 'enlace' && enlace &&
                     (
                         <a
