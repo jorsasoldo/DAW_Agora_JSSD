@@ -189,6 +189,22 @@ public class ControladorPublicacion
 
     private Map<String, Object> nodo_publicacion(Publicacion p)
     {
-        return Map.of("id", p.getId() != null ? p.getId() : "", "titulo", p.getTitulo() != null ? p.getTitulo() : "", "tipo", p.getTipo() != null ? p.getTipo() : "", "contenido", p.getContenido() != null ? p.getContenido() : "", "enlace", p.getEnlace() != null ? p.getEnlace() : "", "url_imagen", p.getUrlImagen() != null ? p.getUrlImagen() : "", "autor", p.getAutor() != null ? p.getAutor() : "", "comunidad", p.getComunidad() != null ? p.getComunidad() : "", "puntaje_votos", p.getPuntajeVotos(), "votos_positivos", p.getVotosPositivos());
+        Map<String, Object> m = new java.util.LinkedHashMap<>();
+        m.put("id", p.getId() != null ? p.getId() : "");
+        m.put("titulo", p.getTitulo() != null ? p.getTitulo() : "");
+        m.put("tipo", p.getTipo() != null ? p.getTipo() : "");
+        m.put("contenido", p.getContenido() != null ? p.getContenido() : "");
+        m.put("enlace", p.getEnlace() != null ? p.getEnlace() : "");
+        m.put("url_imagen", p.getUrlImagen() != null ? p.getUrlImagen() : "");
+        m.put("autor", p.getAutor() != null ? p.getAutor() : "");
+        m.put("comunidad", p.getComunidad() != null ? p.getComunidad() : "");
+        m.put("puntaje_votos", p.getPuntajeVotos());
+        m.put("votos_positivos", p.getVotosPositivos());
+        m.put("total_comentarios", p.getTotalComentarios());
+        m.put("etiqueta", p.getEtiqueta() != null ? p.getEtiqueta() : "");
+        m.put("fijada", p.getFijada());
+        m.put("bloqueada", p.getBloqueada());
+        m.put("creado_en", p.getCreadoEn() != null ? p.getCreadoEn().toString() : null);
+        return m;
     }
 }

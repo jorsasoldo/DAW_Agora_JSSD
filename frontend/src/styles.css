@@ -2203,18 +2203,19 @@ th
 
 .pagina-publicacion-breadcrumb-link
 {
-    color: #2a70ec;
+    color: #ffffff;
     text-decoration: none;
-    font-weight: 500;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
 }
 
 .pagina-publicacion-breadcrumb-link:hover {text-decoration: underline;}
 
-.pagina-publicacion-breadcrumb-sep {color: #c0c4c8;}
+.pagina-publicacion-breadcrumb-sep {color: rgba(255,255,255,0.6);}
 
 .pagina-publicacion-breadcrumb-actual
 {
-    color: #576069;
+    color: rgba(255,255,255,0.85);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

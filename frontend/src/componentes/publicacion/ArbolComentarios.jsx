@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback} from 'react'
+import {useState, useEffect} from 'react'
 
 import {useAutentifica} from '../../contexto/ContextoUsuario.jsx'
 
@@ -17,8 +17,8 @@ function tiempo_relativo(fecha)
     const entonces = new Date(fecha)
     const diferencia = ahora - entonces
     const dif_min = Math.floor(diferencia / 60000)
-    const dif_hr = Math.floor(dif_min / 60)
-    const dif_dia = Math.floor(dif_hr / 24)
+    const dif_hr  = Math.floor(dif_min / 60)
+    const dif_dia = Math.floor(dif_hr  / 24)
 
     if(dif_min < 1)
         return 'hace un momento'
@@ -35,7 +35,7 @@ function tiempo_relativo(fecha)
     return entonces.toLocaleDateString('es-MX', {day: 'numeric', month: 'short', year: 'numeric'})
 }
 
-function NodoComentario({ comentario, hijos, publicacion_id, al_comentar, profundidad = 0 })
+function NodoComentario({ comentario, mapa_hijos, publicacion_id, al_comentar, profundidad = 0 })
 {
     const {usuario} = useAutentifica()
     const [respondiendo, setRespondiendo] = useState(false)
@@ -49,7 +49,7 @@ function NodoComentario({ comentario, hijos, publicacion_id, al_comentar, profun
         if(!comentario.autor)
             return
 
-        fetch(`/api/usuarios/${comentario.autor}`, {credentials: 'include'}).then(r => r.ok ? r.json() : null).then(datos => {if(datos?.nombre_usuario) setNombreAutor(datos.nombre_usuario)}).catch(() => { })}, [comentario.autor])
+        fetch(`/api/usuarios/${comentario.autor}`, {credentials: 'include'}).then(r => r.ok ? r.json() : null).then(datos => { if(datos?.nombre_usuario) setNombreAutor(datos.nombre_usuario) }).catch(() => {})}, [comentario.autor])
 
     function responde_nuevo(nuevo_comentario)
     {
@@ -63,7 +63,9 @@ function NodoComentario({ comentario, hijos, publicacion_id, al_comentar, profun
     //Limite visual de 6 por si acaso no se salga
     const indentacion = profundidad < 6
 
-    const todos_los_hijos = [...hijos, ...respuestasLocales.filter(r => !hijos.find(h => h.id === r.id))]
+    const hijos_del_mapa = mapa_hijos[comentario.id] || []
+
+    const todos_los_hijos = [...hijos_del_mapa, ...respuestasLocales.filter(r => !hijos_del_mapa.find(h => h.id === r.id))]
 
     return (
         <div className={`nodo-comentario ${profundidad > 0 ? 'nodo-comentario--anidado' : ''}`}>
@@ -90,78 +92,65 @@ function NodoComentario({ comentario, hijos, publicacion_id, al_comentar, profun
                     <span className="tarjeta-publicacion-tiempo">{tiempo_relativo(comentario.creado_en)}</span>
                     {colapsar &&
                         (
-                            <button
-                                className="nodo-comentario-btn-expandir"
-                                onClick={() => setColapsar(false)}
-                            >
+                            <button className="nodo-comentario-btn-expandir" onClick={() => setColapsar(false)}>
                                 Ver comentario
                             </button>
                         )
                     }
                 </div>
 
-                {
-                }
-
                 {!colapsar &&
-                            (
-                                <>
-                                    <div className="nodo-comentario-texto">
-                                        {comentario.contenido?.split('\n').map((linea, i) => linea.trim() ? <p key={i}>{linea}</p> : <br key={i} />)}
+                    (
+                        <>
+                            <div className="nodo-comentario-texto">
+                                {comentario.contenido?.split('\n').map((linea, i) => linea.trim() ? <p key={i}>{linea}</p> : <br key={i} />)}
+                            </div>
+
+                            <div className="nodo-comentario-pie">
+                                <ComponenteVotos
+                                    objetivo_id={comentario.id}
+                                    tipo_objetivo="comentario"
+                                    puntaje_inicial={puntajeLocal}
+                                    orientacion="horizontal"
+                                    al_votar={setPuntajeLocal}
+                                />
+                                {usuario &&
+                                    (
+                                        <button
+                                            className="nodo-comentario-btn-responder"
+                                            onClick={() => setRespondiendo(!respondiendo)}
+                                        >
+                                            {respondiendo ? 'Cancelar' : 'Responder'}
+                                        </button>
+                                    )
+                                }
+                            </div>
+
+                            {respondiendo && usuario &&
+                                (
+                                    <FormularioComentario
+                                        publicacion_id={publicacion_id}
+                                        padre_id={comentario.id}
+                                        al_enviar={responde_nuevo}
+                                        al_cancelar={() => setRespondiendo(false)}
+                                        placeholder={`Respondiendo a u/${nombreAutor}...`}
+                                    />
+                                )
+                            }
+
+                            {
+                                //hijos del arbol recursibvos
+                            }
+
+                            {todos_los_hijos.length > 0 &&
+                                (
+                                    <div className="nodo-comentario-hijos">
+                                        {todos_los_hijos.map(hijo => (<NodoComentario key={hijo.id} comentario={hijo} mapa_hijos={mapa_hijos} publicacion_id={publicacion_id} al_comentar={al_comentar} profundidad={profundidad + 1}/>))}
                                     </div>
-
-                                    {
-                                    }
-
-                                    <div className="nodo-comentario-pie">
-                                        <ComponenteVotos
-                                            objetivo_id={comentario.id}
-                                            tipo_objetivo="comentario"
-                                            puntaje_inicial={puntajeLocal}
-                                            orientacion="horizontal"
-                                            al_votar={setPuntajeLocal}
-                                        />
-
-                                        {usuario &&
-                                            (
-                                                <button
-                                                    className="nodo-comentario-btn-responder"
-                                                    onClick={() => setRespondiendo(!respondiendo)}
-                                                >
-                                                    {respondiendo ? 'Cancelar' : 'Responder'}
-                                                </button>
-                                            )
-                                        }
-                                    </div>
-
-                                    {
-                                    }
-
-                                    {respondiendo && usuario &&
-                                        (
-                                            <FormularioComentario
-                                                publicacion_id={publicacion_id}
-                                                padre_id={comentario.id}
-                                                al_enviar={responde_nuevo}
-                                                al_cancelar={() => setRespondiendo(false)}
-                                                placeholder={`Respondiendo a u/${nombreAutor}...`}
-                                            />
-                                        )
-                                    }
-
-                                    {
-                                        //hijos del arbol recursibvos
-                                    }
-
-                                    {todos_los_hijos.length > 0 &&
-                                        (
-                                            <div className="nodo-comentario-hijos">
-                                                {todos_los_hijos.map(hijo => (<NodoComentario key={hijo.id} comentario={hijo} hijos={[]} publicacion_id={publicacion_id} al_comentar={al_comentar} profundidad={profundidad + 1}/>))}
-                                            </div>
-                                        )
-                                    }
-                                </>
-                            )
+                                )
+                            }
+                        </>
+                    )
                 }
             </div>
         </div>
@@ -170,7 +159,6 @@ function NodoComentario({ comentario, hijos, publicacion_id, al_comentar, profun
 
 export default function ArbolComentarios({ comentarios, publicacion_id, al_comentar })
 {
-    //Construye un mapa de sus hijos
     const mapa_hijos = {}
 
     const raices = []
@@ -181,10 +169,10 @@ export default function ArbolComentarios({ comentarios, publicacion_id, al_comen
     {
         if(c.padre_id)
         {
-            if(!mapa_hijos[c.padre_id]) mapa_hijos[c.padre_id] = []
+            if(!mapa_hijos[c.padre_id])
+                mapa_hijos[c.padre_id] = []
 
             mapa_hijos[c.padre_id].push(c)
-
         }
 
         else
@@ -198,7 +186,7 @@ export default function ArbolComentarios({ comentarios, publicacion_id, al_comen
 
     return (
                 <div className="arbol-comentarios">
-                    {raices.map(comentario => (<NodoComentario key={comentario.id} comentario={comentario} hijos={mapa_hijos[comentario.id] || []} publicacion_id={publicacion_id} al_comentar={al_comentar} profundidad={0}/>))}
+                    {raices.map(comentario => (<NodoComentario key={comentario.id} comentario={comentario} mapa_hijos={mapa_hijos} publicacion_id={publicacion_id} al_comentar={al_comentar} profundidad={0}/>))}
                 </div>
             )
 }

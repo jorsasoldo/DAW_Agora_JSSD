@@ -75,7 +75,9 @@ public class ControladorComentario
 
         String id_generado = servicio_comentario.crea_comentario(id_publicacion, id_usuario, contenido, id_padre);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("mensaje", "Comentario creado", "id", id_generado));
+        Comentario nuevo = servicio_comentario.busca_id(id_generado);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(nodo_comentario(nuevo));
     }
 
     @PutMapping("/{id}")
