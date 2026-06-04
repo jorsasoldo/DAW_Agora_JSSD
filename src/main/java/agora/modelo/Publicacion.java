@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.util.Date;
+import java.util.List;
 
 @Document(collection = "PUBLICACION")
 public class Publicacion
@@ -13,7 +14,7 @@ public class Publicacion
     @Id
     private String id;
     private String titulo;
-    private String tipo;
+    private List<String> tipos;
     private String contenido;
     private String enlace;
     @Field("url_imagen")
@@ -41,10 +42,10 @@ public class Publicacion
 
     }
 
-    public Publicacion(String titulo, String tipo, String autorId, String comunidadId)
+    public Publicacion(String titulo, List<String> tipos, String autorId, String comunidadId)
     {
         this.titulo = titulo;
-        this.tipo = tipo;
+        this.tipos = tipos;
         this.autor = new ObjectId(autorId);
         this.comunidad = new ObjectId(comunidadId);
     }
@@ -69,14 +70,14 @@ public class Publicacion
         this.titulo = titulo;
     }
 
-    public String getTipo()
+    public List<String> getTipos()
     {
-        return tipo;
+        return tipos;
     }
 
-    public void setTipo(String tipo)
+    public void setTipos(List<String> tipos)
     {
-        this.tipo = tipo;
+        this.tipos = tipos;
     }
 
     public String getContenido()

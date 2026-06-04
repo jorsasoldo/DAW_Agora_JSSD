@@ -134,6 +134,12 @@ export default function Inicio()
                             {op.etiqueta}
                         </button>
                     ))}
+                    {
+                        //Boton crear publiacion
+                    }
+                    <Link to="/publicar" className="pagina-inicio-btn-nueva-publicacion">
+                        Crear publicación
+                    </Link>
                 </div>
             </div>
             {

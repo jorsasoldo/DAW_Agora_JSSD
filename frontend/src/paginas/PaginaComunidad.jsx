@@ -220,8 +220,8 @@ export default function PaginaComunidad()
                             )
                         }
 
-                        <Link to="/publicar" className="pagina-comunidad-btn-publicar">
-                            + Publicar
+                        <Link to={`/publicar?comunidad=${id}`} className="pagina-comunidad-btn-publicar">
+                            Crear Publicación
                         </Link>
                     </div>
                 </div>
@@ -264,7 +264,7 @@ export default function PaginaComunidad()
                                 <p className="pagina-inicio-estado-texto">
                                     Esta comunidad no tiene publicaciones todavía
                                 </p>
-                                <Link to="/publicar" className="btn-primary pagina-inicio-btn-crear">
+                                <Link to={`/publicar?comunidad=${id}`} className="btn-primary pagina-inicio-btn-crear">
                                     Crear la primera publicación
                                 </Link>
                             </div>

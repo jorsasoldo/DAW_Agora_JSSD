@@ -37,7 +37,9 @@ const etiquetas_tipo = {texto: 'Texto', enlace: 'Enlace', imagen: 'Imagen'}
 
 export default function TarjetaPublicacion({ publicacion, nombresComunidades = {}, nombresAutores = {} })
 {
-    const {id, titulo = '', tipo = '', contenido = '', enlace = '', url_imagen = '', autor = '', comunidad = '', puntaje_votos = 0, total_comentarios = 0, etiqueta = '', fijada = false, creado_en,} = publicacion
+    const {id, titulo = '', tipos = [], tipo: _tipo = '', contenido = '', enlace = '', url_imagen = '', autor = '', comunidad = '', puntaje_votos = 0, total_comentarios = 0, etiqueta = '', fijada = false, creado_en,} = publicacion
+
+    const tipo = tipos.length > 0 ? tipos.join('+') : _tipo
 
     //Estado local del puntaje para que el componente de votos pueda actualizarlo
     const [puntaje_local, setPuntajeLocal] = useState(puntaje_votos)
@@ -63,7 +65,7 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
             {
                 //Miniatura de imagen
             }
-            {tipo === 'imagen' && url_imagen &&
+            {tipos.includes('imagen') && url_imagen &&
                 (
                     <Link to={`/p/${id}`} className="tarjeta-publicacion-miniatura">
                         <img src={url_imagen} alt={titulo} className="tarjeta-publicacion-miniatura-img" />
@@ -119,13 +121,16 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
                     //Etiquetas
                 }
                 <div className="tarjeta-publicacion-etiquetas">
-                    {tipo &&
-                        (
-                            <span className={`tarjeta-publicacion-etiqueta-tipo tarjeta-publicacion-etiqueta-tipo--${tipo}`}>
-                                {etiquetas_tipo[tipo] || tipo}
-                            </span>
+                    {
+                        tipos.length > 0 && tipos.map(t =>
+                            (
+                                <span key={t} className={`tarjeta-publicacion-etiqueta-tipo tarjeta-publicacion-etiqueta-tipo--${t}`}>
+                                    {etiquetas_tipo[t] || t}
+                                </span>
+                            )
                         )
                     }
+
                     {etiqueta &&
                         (
                             <span className="tarjeta-publicacion-etiqueta-custom">{etiqueta}</span>
@@ -136,7 +141,7 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
                 {
                     //Vista previa del texto
                 }
-                {tipo === 'texto' && contenido &&
+                {tipos.includes('texto') && contenido &&
                     (
                         <p className="tarjeta-publicacion-preview">{contenido}</p>
                     )
@@ -145,7 +150,7 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
                 {
                     //Enlace
                 }
-                {tipo === 'enlace' && enlace &&
+                {tipos.includes('enlace') && enlace &&
                     (
                         <a
                             href={enlace}

@@ -73,15 +73,16 @@ export default function PaginaPublicacion()
             setPublicacion(pub)
             setPuntajeLocal(pub.puntaje_votos ?? 0)
 
-            if (pub.comunidad)
+            if(pub.comunidad)
             {
                 try
                 {
-                    const com = await fetch(`/api/comunidades/${pub.comunidad}`, {credentials: 'include'})
+                    const respComunidad = await fetch(`/api/comunidades/${pub.comunidad}`, {credentials: 'include'})
 
-                    if(com.ok)
+                    if(respComunidad.ok)
                     {
-                        const com = await com.json()
+                        const com = await respComunidad.json()
+
                         setNombreComunidad(com.nombre || pub.comunidad)
                     }
 
@@ -183,22 +184,28 @@ export default function PaginaPublicacion()
                 )
     }
 
-    const {titulo = '', tipo = '', contenido = '', enlace = '', url_imagen = '', comunidad, autor, etiqueta = '', fijada = false, creado_en, total_comentarios = 0,} = publicacion
+    const {titulo = '', tipos = [], tipo: _tipo = '', contenido = '', enlace = '', url_imagen = '', comunidad, autor, etiqueta = '', fijada = false, creado_en, total_comentarios = 0,} = publicacion
+
+    const tipo = tipos.length > 0 ? tipos.join('+') : _tipo
 
     return (
         <div className="pagina-publicacion">
             {
             }
+
             <nav className="pagina-publicacion-breadcrumb">
-                <Link to="/" className="pagina-publicacion-breadcrumb-link">Inicio</Link>
-                {nombreComunidad && (
-                    <>
-                        <span className="pagina-publicacion-breadcrumb-sep">›</span>
+                {nombreComunidad ?
+                    (
                         <Link to={`/c/${comunidad}`} className="pagina-publicacion-breadcrumb-link">
                             c/{nombreComunidad}
                         </Link>
-                    </>
-                )}
+                    )
+
+                    :
+                    (
+                        <Link to="/" className="pagina-publicacion-breadcrumb-link">Inicio</Link>
+                    )
+                }
                 <span className="pagina-publicacion-breadcrumb-sep">›</span>
                 <span className="pagina-publicacion-breadcrumb-actual">{titulo}</span>
             </nav>
@@ -207,7 +214,6 @@ export default function PaginaPublicacion()
                 //Tarjeta principal
             }
             <article className="pagina-publicacion-tarjeta">
-
                 {
                     //Columna de votos
                 }
@@ -220,54 +226,59 @@ export default function PaginaPublicacion()
                         al_votar={setPuntajeLocal}
                     />
                 </div>
-
                 {
                 }
                 <div className="pagina-publicacion-cuerpo">
-
                     {
                     }
                     <div className="pagina-publicacion-meta">
-                        {nombreComunidad && (
-                            <>
-                                <Link to={`/c/${comunidad}`} className="tarjeta-publicacion-comunidad">
-                                    c/{nombreComunidad}
-                                </Link>
-                                <span className="tarjeta-publicacion-separador">·</span>
-                            </>
-                        )}
+                        {nombreComunidad &&
+                            (
+                                <>
+                                    <Link to={`/c/${comunidad}`} className="tarjeta-publicacion-comunidad">
+                                        c/{nombreComunidad}
+                                    </Link>
+                                    <span className="tarjeta-publicacion-separador">·</span>
+                                </>
+                            )
+                        }
                         <span className="tarjeta-publicacion-autor">u/{nombreAutor}</span>
-                        {creado_en && (
-                            <>
-                                <span className="tarjeta-publicacion-separador">·</span>
-                                <span className="tarjeta-publicacion-tiempo">{tiempo_relativo(creado_en)}</span>
-                            </>
-                        )}
+                        {creado_en &&
+                            (
+                                <>
+                                    <span className="tarjeta-publicacion-separador">·</span>
+                                    <span className="tarjeta-publicacion-tiempo">{tiempo_relativo(creado_en)}</span>
+                                </>
+                            )
+                        }
                         {fijada && <span className="tarjeta-publicacion-fijada">Fijada</span>}
                     </div>
-
                     {
                     }
                     <h1 className="pagina-publicacion-titulo">{titulo}</h1>
-
                     {
                         //Etiquetas
                     }
                     <div className="tarjeta-publicacion-etiquetas">
-                        {tipo && (
-                            <span className={`tarjeta-publicacion-etiqueta-tipo tarjeta-publicacion-etiqueta-tipo--${tipo}`}>
-                                {etiquetas_tipo[tipo] || tipo}
-                            </span>
-                        )}
-                        {etiqueta && (
-                            <span className="tarjeta-publicacion-etiqueta-custom">{etiqueta}</span>
-                        )}
-                    </div>
+                        {tipos.length > 0 && tipos.map(t =>
+                            (
+                                <span key={t} className={`tarjeta-publicacion-etiqueta-tipo tarjeta-publicacion-etiqueta-tipo--${t}`}>
+                                    {etiquetas_tipo[t] || t}
+                                </span>
+                            )
+                        )
+                        }
 
+                        {etiqueta &&
+                            (
+                                <span className="tarjeta-publicacion-etiqueta-custom">{etiqueta}</span>
+                            )
+                        }
+                    </div>
                     {
                         //Tipo de contenido
                     }
-                    {tipo === 'texto' && contenido &&
+                    {tipos.includes('texto') && contenido &&
                         (
                             <div className="pagina-publicacion-contenido-texto">
                                 {contenido.split('\n').map((parrafo, i) => (parrafo.trim() ? <p key={i}>{parrafo}</p> : <br key={i} />))}
@@ -275,7 +286,7 @@ export default function PaginaPublicacion()
                         )
                     }
 
-                    {tipo === 'enlace' && enlace &&
+                    {tipos.includes('enlace') && enlace &&
                         (
                             <a
                                 href={enlace}
@@ -288,7 +299,7 @@ export default function PaginaPublicacion()
                         )
                     }
 
-                    {tipo === 'imagen' && url_imagen &&
+                    {tipos.includes('imagen') && url_imagen &&
                         (
                             <div className="pagina-publicacion-imagen-contenedor">
                                 <img
@@ -299,7 +310,6 @@ export default function PaginaPublicacion()
                             </div>
                         )
                     }
-
                     {
                         //Comentarios
                     }

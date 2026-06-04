@@ -27,6 +27,8 @@ import java.util.Map;
 @RequestMapping("/api/publicaciones")
 public class ControladorPublicacion
 {
+    private static final List<String> tipos_validos = List.of("texto", "enlace", "imagen");
+
     private final RepositorioPublicacion repositorio_publicacion;
     private final RepositorioComunidad repositorio_comunidad;
     private final MongoTemplate mongo_template;
@@ -65,29 +67,37 @@ public class ControladorPublicacion
     }
 
     @PostMapping
+    @SuppressWarnings("unchecked")
     public ResponseEntity<?> crear(@RequestBody Map<String, Object> body, HttpServletRequest req)
     {
         String id_usuario = (String)req.getAttribute("jwt_usuario_id");
         String titulo = (String)body.get("titulo");
-        String tipo = (String)body.get("tipo");
         String id_comunidad = (String)body.get("comunidad");
+        List<String> tipos = (List<String>)body.get("tipos");
 
         if(titulo == null || titulo.isBlank())
             return ResponseEntity.badRequest().body(Map.of("error", "El campo titulo es obligatorio"));
 
-        if(tipo == null || tipo.isBlank())
-            return ResponseEntity.badRequest().body(Map.of("error", "El campo tipo es obligatorio"));
+        if(tipos == null || tipos.isEmpty())
+            return ResponseEntity.badRequest().body(Map.of("error", "Debes indicar al menos un tipo (texto, enlace, imagen)"));
+
+        for(String t : tipos)
+        {
+            if(!tipos_validos.contains(t))
+                return ResponseEntity.badRequest().body(Map.of("error", "Tipo no valido: " + t));
+        }
 
         if(id_comunidad == null || !id_comunidad.matches("[0-9a-fA-F]{24}"))
             return ResponseEntity.badRequest().body(Map.of("error", "El campo comunidad es obligatorio y debe ser un id valido"));
 
         repositorio_comunidad.findById(id_comunidad).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "La comunidad especificada no existe"));
 
-        Publicacion nueva = new Publicacion(titulo, tipo, id_usuario, id_comunidad);
-        nueva.setContenido((String)body.get("contenido"));
-        nueva.setEnlace((String)body.get("enlace"));
-        nueva.setUrlImagen((String)body.get("url_imagen"));
-        nueva.setEtiqueta((String)body.get("etiqueta"));
+        Publicacion nueva = new Publicacion(titulo, tipos, id_usuario, id_comunidad);
+
+        nueva.setContenido((String) body.get("contenido"));
+        nueva.setEnlace((String) body.get("enlace"));
+        nueva.setUrlImagen((String) body.get("url_imagen"));
+        nueva.setEtiqueta((String) body.get("etiqueta"));
         nueva.setCreadoEn(new Date());
 
         repositorio_publicacion.save(nueva);
@@ -192,15 +202,15 @@ public class ControladorPublicacion
         Map<String, Object> m = new java.util.LinkedHashMap<>();
         m.put("id", p.getId() != null ? p.getId() : "");
         m.put("titulo", p.getTitulo() != null ? p.getTitulo() : "");
-        m.put("tipo", p.getTipo() != null ? p.getTipo() : "");
-        m.put("contenido", p.getContenido() != null ? p.getContenido() : "");
+        m.put("tipos", p.getTipos() != null ? p.getTipos() : List.of());
+        m.put("contenido", p.getContenido()!= null ? p.getContenido(): "");
         m.put("enlace", p.getEnlace() != null ? p.getEnlace() : "");
-        m.put("url_imagen", p.getUrlImagen() != null ? p.getUrlImagen() : "");
+        m.put("url_imagen", p.getUrlImagen()!= null ? p.getUrlImagen(): "");
         m.put("autor", p.getAutor() != null ? p.getAutor() : "");
-        m.put("comunidad", p.getComunidad() != null ? p.getComunidad() : "");
+        m.put("comunidad", p.getComunidad()!= null ? p.getComunidad(): "");
         m.put("puntaje_votos", p.getPuntajeVotos());
         m.put("votos_positivos", p.getVotosPositivos());
-        m.put("total_comentarios", p.getTotalComentarios());
+        m.put("total_comentarios",p.getTotalComentarios());
         m.put("etiqueta", p.getEtiqueta() != null ? p.getEtiqueta() : "");
         m.put("fijada", p.getFijada());
         m.put("bloqueada", p.getBloqueada());
