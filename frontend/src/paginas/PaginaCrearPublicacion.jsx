@@ -17,6 +17,7 @@ export default function PaginaCrearPublicacion()
     const [params] = useSearchParams()
     const {usuario} = useAutentifica()
     const ref = useRef(null)
+    const refImagenArchivo = useRef(null)
 
     const [titulo, setTitulo] = useState('')
     const [etiqueta, setEtiqueta] = useState('')
@@ -502,14 +503,53 @@ export default function PaginaCrearPublicacion()
 
                                     :
                                     (
-                                        <input
-                                            id="campo-imagen-archivo"
-                                            type="file"
-                                            accept="image/*"
-                                            className="publicar-imagen-archivo"
-                                            onChange={maneja_archivo_imagen}
-                                            disabled={enviando}
-                                        />
+                                        <div className="publicar-imagen-selector">
+                                            <div
+                                                className={`publicar-imagen-selector-area${previewArchivo ? ' publicar-imagen-selector-area--con-preview' : ''}`}
+                                                onClick={() => !enviando && refImagenArchivo.current.click()}
+                                            >
+                                                {previewArchivo ?
+                                                    (
+                                                        <>
+                                                            <img
+                                                                src={previewArchivo}
+                                                                alt="Vista previa"
+                                                                className="publicar-imagen-selector-preview"
+                                                            />
+                                                            <div className="publicar-imagen-selector-overlay">
+                                                                <img
+                                                                    src="/imagenes/camara.png"
+                                                                    alt=""
+                                                                    className="publicar-imagen-selector-icono publicar-imagen-selector-icono--overlay"
+                                                                />
+                                                            </div>
+                                                        </>
+                                                    )
+
+                                                    :
+                                                    (
+                                                        <img
+                                                            src="/imagenes/camara.png"
+                                                            alt="Seleccionar imagen"
+                                                            className="publicar-imagen-selector-icono publicar-imagen-selector-icono--vacio"
+                                                        />
+                                                    )
+                                                }
+
+                                            </div>
+                                            <p className="publicar-imagen-selector-texto">
+                                                {previewArchivo ? 'Haz clic para cambiar la imagen' : 'Haz clic para seleccionar una imagen'}
+                                            </p>
+                                            <input
+                                                ref={refImagenArchivo}
+                                                id="campo-imagen-archivo"
+                                                type="file"
+                                                accept="image/*"
+                                                style={{display: 'none'}}
+                                                onChange={maneja_archivo_imagen}
+                                                disabled={enviando}
+                                            />
+                                        </div>
                                     )
                                 }
 
