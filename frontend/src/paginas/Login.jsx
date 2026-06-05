@@ -37,7 +37,7 @@ export default function Login()
 
             const datos = await resp.json()
 
-            login({id: datos.id, nombre_usuario: datos.nombre_usuario, email: datos.email, rol: datos.rol})
+            login({id: datos.id, nombre_usuario: datos.nombre_usuario, email: datos.email, rol: datos.rol, foto_perfil: datos.foto_perfil || ''})
 
             navigate('/')
 

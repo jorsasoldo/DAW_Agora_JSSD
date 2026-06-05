@@ -43,12 +43,11 @@ public class ControladorAutenticacion
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> body, HttpServletResponse res)
-    {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> body, HttpServletResponse res) {
         String email = body.get("email");
         String contrasena = body.get("contrasena");
 
-        if(email == null || email.isBlank() || contrasena == null || contrasena.isBlank())
+        if (email == null || email.isBlank() || contrasena == null || contrasena.isBlank())
             return ResponseEntity.badRequest().body(Map.of("error", "Los campos email y contrasena son obligatorios"));
 
         ServicioAutenticacion.resultado_login result = servicio_autenticacion.login(email, contrasena);
@@ -61,7 +60,9 @@ public class ControladorAutenticacion
 
         Usuario u = result.usuario();
 
-        return ResponseEntity.ok(Map.of("mensaje", "Login exitoso", "token", result.token(), "id", u.getId(), "nombre_usuario", u.getNombreUsuario(), "email", u.getEmail(), "rol", u.getRol()));
+        String foto_perfil = u.getFotoPerfil() != null ? u.getFotoPerfil() : "";
+
+        return ResponseEntity.ok(Map.of("mensaje", "Login exitoso", "token", result.token(), "id", u.getId(), "nombre_usuario", u.getNombreUsuario(), "email", u.getEmail(), "rol", u.getRol(), "foto_perfil", foto_perfil));
     }
 
     @PostMapping("/logout")

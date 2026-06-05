@@ -92,9 +92,9 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
                             </>
                         )
                     }
-                    <span className="tarjeta-publicacion-autor">
+                    <Link to={`/u/${nombre_autor}`} className="tarjeta-publicacion-autor">
                         u/{nombre_autor}
-                    </span>
+                    </Link>
                     {creado_en &&
                         (
                             <>

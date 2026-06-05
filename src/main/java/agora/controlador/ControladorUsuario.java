@@ -44,6 +44,12 @@ public class ControladorUsuario
         return ResponseEntity.ok(lista.stream().map(this::usuario_publico).toList());
     }
 
+    @GetMapping("/buscar")
+    public ResponseEntity<?> buscar_por_nombre(@RequestParam String nombre_usuario)
+    {
+        return repositorio_usuario.findByNombreUsuario(nombre_usuario).map(u -> ResponseEntity.ok(usuario_publico(u))).orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?> buscar(@PathVariable String id)
     {

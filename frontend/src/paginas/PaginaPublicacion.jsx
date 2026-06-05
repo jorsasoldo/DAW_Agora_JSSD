@@ -242,7 +242,7 @@ export default function PaginaPublicacion()
                                 </>
                             )
                         }
-                        <span className="tarjeta-publicacion-autor">u/{nombreAutor}</span>
+                        <Link to={`/u/${nombreAutor}`} className="tarjeta-publicacion-autor">u/{nombreAutor}</Link>
                         {creado_en &&
                             (
                                 <>

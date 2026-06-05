@@ -1,5 +1,6 @@
 package agora.controlador;
 
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,6 +23,12 @@ public class ManejadorExcepciones
     public ResponseEntity<?> maneja_illegal_argument(IllegalArgumentException ex)
     {
         return ResponseEntity.badRequest().body(Map.of("error", "Id invalido: " + ex.getMessage()));
+    }
+
+    @ExceptionHandler(ClientAbortException.class)
+    public void maneja_cliente_desconectado(ClientAbortException e)
+    {
+        //El cliente cerro la conexion antes de recibir la respuesta
     }
 
     @ExceptionHandler(Exception.class)

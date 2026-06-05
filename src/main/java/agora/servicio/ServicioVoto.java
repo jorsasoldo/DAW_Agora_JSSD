@@ -105,10 +105,10 @@ public class ServicioVoto
             {
                 //Cambia puntuacion
                 int delta = valor - valor_anterior;
-                repositorio_voto.deleteByUsuarioIdAndObjetivoId(new ObjectId(id_votante), new ObjectId(id_objetivo));
 
-                Voto nuevo = new Voto(id_votante, id_objetivo, tipo_objetivo, id_autor_objetivo, valor);
-                repositorio_voto.save(nuevo);
+                //Ahora solo un set porque se tardaba demasiado al ser un delete y un save
+                Query q_voto = Query.query(Criteria.where("usuario_id").is(new ObjectId(id_votante)).and("objetivo_id").is(new ObjectId(id_objetivo)));
+                mongo_template.updateFirst(q_voto, new Update().set("valor", valor), Voto.class);
 
                 aplica_puntaje_objetivo(id_objetivo, tipo_objetivo, delta);
                 incrementa_karma(id_autor_objetivo, delta);

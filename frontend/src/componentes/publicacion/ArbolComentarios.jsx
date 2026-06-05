@@ -1,4 +1,5 @@
 import {useState, useEffect} from 'react'
+import {Link} from 'react-router-dom'
 
 import {useAutentifica} from '../../contexto/ContextoUsuario.jsx'
 
@@ -87,7 +88,7 @@ function NodoComentario({ comentario, mapa_hijos, publicacion_id, al_comentar, p
                 {
                 }
                 <div className="nodo-comentario-cabecera">
-                    <span className="nodo-comentario-autor">u/{nombreAutor}</span>
+                    <Link to={`/u/${nombreAutor}`} className="nodo-comentario-autor">u/{nombreAutor}</Link>
                     <span className="tarjeta-publicacion-separador">·</span>
                     <span className="tarjeta-publicacion-tiempo">{tiempo_relativo(comentario.creado_en)}</span>
                     {colapsar &&
