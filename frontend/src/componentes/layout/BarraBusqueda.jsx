@@ -55,6 +55,7 @@ export default function BarraBusqueda()
             }
             <Link to="/" className="barra-busqueda-logo">
                 <img src="/imagenes/Agora_logo.png" alt="Agora" className="navbar-logo-img" />
+                <img src="/imagenes/Agora_letra.png" alt="" aria-hidden="true" className="navbar-logo-letra-img" />
             </Link>
             {
                 //buscador

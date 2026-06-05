@@ -13,4 +13,6 @@ public interface RepositorioPublicacion extends MongoRepository<Publicacion, Str
     List<Publicacion> findByComunidad(ObjectId comunidad, Sort sort);
 
     List<Publicacion> findByAutor(ObjectId autor, Sort sort);
+
+    List<Publicacion> findByTituloContainingIgnoreCase(String titulo, Sort sort);
 }
