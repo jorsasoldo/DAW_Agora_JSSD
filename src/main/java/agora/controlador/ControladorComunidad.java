@@ -47,11 +47,24 @@ public class ControladorComunidad
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> buscar(@PathVariable String id)
+    public ResponseEntity<?> buscar(@PathVariable String id, HttpServletRequest req)
     {
         Comunidad c = repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
 
-        return ResponseEntity.ok(nodo_comunidad(c));
+        String id_usuario = (String)req.getAttribute("jwt_usuario_id");
+
+        boolean suscrito = false;
+
+        if(id_usuario != null)
+        {
+            Usuario u = repositorio_usuario.findById(id_usuario).orElse(null);
+            suscrito = u != null && u.getComunidadesSuscritas() != null && u.getComunidadesSuscritas().contains(id);
+        }
+
+        Map<String, Object> datos = new java.util.HashMap<>(nodo_comunidad(c));
+        datos.put("suscrito", suscrito);
+
+        return ResponseEntity.ok(datos);
     }
 
     @PostMapping
@@ -184,6 +197,19 @@ public class ControladorComunidad
         repositorio_comunidad.deleteById(id);
 
         return ResponseEntity.ok(Map.of("mensaje", "Comunidad eliminada"));
+    }
+
+    @GetMapping("/{id}/miembros")
+    public ResponseEntity<?> miembros(@PathVariable String id)
+    {
+        repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
+
+        Query q = Query.query(Criteria.where("comunidades_suscritas").is(new ObjectId(id)));
+        List<Usuario> usuarios = mongo_template.find(q, Usuario.class);
+
+        List<Map<String, Object>> resultado = usuarios.stream().map(u -> Map.<String, Object>of("id", u.getId() != null ? u.getId() : "", "nombre_usuario", u.getNombreUsuario() != null ? u.getNombreUsuario() : "", "foto_perfil", u.getFotoPerfil() != null ? u.getFotoPerfil() : "")).toList();
+
+        return ResponseEntity.ok(resultado);
     }
 
     private Map<String, Object> nodo_comunidad(Comunidad c)

@@ -36,7 +36,7 @@ function tiempo_relativo(fecha)
     return entonces.toLocaleDateString('es-MX', {day: 'numeric', month: 'short', year: 'numeric'})
 }
 
-function NodoComentario({ comentario, mapa_hijos, publicacion_id, al_comentar, profundidad = 0 })
+function NodoComentario({comentario, mapa_hijos, publicacion_id, al_comentar, es_moderador = false, al_eliminar, profundidad = 0})
 {
     const {usuario} = useAutentifica()
     const [respondiendo, setRespondiendo] = useState(false)
@@ -44,6 +44,47 @@ function NodoComentario({ comentario, mapa_hijos, publicacion_id, al_comentar, p
     const [puntajeLocal, setPuntajeLocal] = useState(comentario.puntaje_votos ?? 0)
     const [nombreAutor, setNombreAutor] = useState(comentario.autor || '')
     const [respuestasLocales, setRespuestasLocales] = useState([])
+
+    const [eliminando, setEliminando] = useState(false)
+    const [confirmandoEliminar, setConfirmando] = useState(false)
+    const [eliminadoLocal, setEliminadoLocal] = useState(comentario.eliminado ?? false)
+
+    async function maneja_eliminar()
+    {
+        if(!confirmandoEliminar)
+        {
+            setConfirmando(true)
+            return
+        }
+
+        setEliminando(true)
+
+        try
+        {
+            const resp = await fetch(`/api/comentarios/${comentario.id}`, {method: 'DELETE', credentials: 'include',})
+
+            if(!resp.ok)
+                throw new Error(`Error ${resp.status}`)
+
+            setEliminadoLocal(true)
+
+            setConfirmando(false)
+
+            if(al_eliminar)
+                al_eliminar(comentario.id)
+        }
+
+        catch(e)
+        {
+            console.error('Error al eliminar comentario:', e)
+            setConfirmando(false)
+        }
+
+        finally
+        {
+            setEliminando(false)
+        }
+    }
 
     useEffect(() =>
     {
@@ -115,7 +156,8 @@ function NodoComentario({ comentario, mapa_hijos, publicacion_id, al_comentar, p
                                     orientacion="horizontal"
                                     al_votar={setPuntajeLocal}
                                 />
-                                {usuario &&
+
+                                {usuario && !eliminadoLocal &&
                                     (
                                         <button
                                             className="nodo-comentario-btn-responder"
@@ -123,6 +165,44 @@ function NodoComentario({ comentario, mapa_hijos, publicacion_id, al_comentar, p
                                         >
                                             {respondiendo ? 'Cancelar' : 'Responder'}
                                         </button>
+                                    )
+                                }
+
+                                {es_moderador && !eliminadoLocal &&
+                                    (
+                                        confirmandoEliminar ?
+                                            (
+                                                <span className="nodo-comentario-confirmar-eliminar">
+                                                    ¿Eliminar?{' '}
+
+                                                    <button
+                                                        className="nodo-comentario-btn-eliminar--confirmar"
+                                                        onClick={maneja_eliminar}
+                                                        disabled={eliminando}
+                                                    >
+                                                        {eliminando ? '...' : 'Sí'}
+                                                    </button>
+                                                    {' / '}
+                                                    <button
+                                                        className="nodo-comentario-btn-cancelar-eliminar"
+                                                        onClick={() => setConfirmando(false)}
+                                                        disabled={eliminando}
+                                                    >
+                                                        No
+                                                    </button>
+                                                </span>
+                                            )
+
+                                            :
+                                            (
+                                                <button
+                                                    className="nodo-comentario-btn-eliminar"
+                                                    onClick={maneja_eliminar}
+                                                    title="Eliminar comentario (moderador)"
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            )
                                     )
                                 }
                             </div>
@@ -146,7 +226,7 @@ function NodoComentario({ comentario, mapa_hijos, publicacion_id, al_comentar, p
                             {todos_los_hijos.length > 0 &&
                                 (
                                     <div className="nodo-comentario-hijos">
-                                        {todos_los_hijos.map(hijo => (<NodoComentario key={hijo.id} comentario={hijo} mapa_hijos={mapa_hijos} publicacion_id={publicacion_id} al_comentar={al_comentar} profundidad={profundidad + 1}/>))}
+                                        {todos_los_hijos.map(hijo => (<NodoComentario key={hijo.id} comentario={hijo} mapa_hijos={mapa_hijos} publicacion_id={publicacion_id} al_comentar={al_comentar} es_moderador={es_moderador} al_eliminar={al_eliminar} profundidad={profundidad + 1}/>))}
                                     </div>
                                 )
                             }
@@ -158,7 +238,7 @@ function NodoComentario({ comentario, mapa_hijos, publicacion_id, al_comentar, p
     )
 }
 
-export default function ArbolComentarios({ comentarios, publicacion_id, al_comentar })
+export default function ArbolComentarios({comentarios, publicacion_id, al_comentar, es_moderador = false})
 {
     const mapa_hijos = {}
 
@@ -187,7 +267,7 @@ export default function ArbolComentarios({ comentarios, publicacion_id, al_comen
 
     return (
                 <div className="arbol-comentarios">
-                    {raices.map(comentario => (<NodoComentario key={comentario.id} comentario={comentario} mapa_hijos={mapa_hijos} publicacion_id={publicacion_id} al_comentar={al_comentar} profundidad={0}/>))}
+                    {raices.map(comentario => (<NodoComentario key={comentario.id} comentario={comentario} mapa_hijos={mapa_hijos} publicacion_id={publicacion_id} al_comentar={al_comentar} es_moderador={es_moderador} profundidad={0}/>))}
                 </div>
             )
 }

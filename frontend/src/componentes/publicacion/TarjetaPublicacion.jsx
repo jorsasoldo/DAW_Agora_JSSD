@@ -35,7 +35,7 @@ function tiempo_relativo(fecha)
 //Etiquetas de cada tipo de publicacion
 const etiquetas_tipo = {texto: 'Texto', enlace: 'Enlace', imagen: 'Imagen'}
 
-export default function TarjetaPublicacion({ publicacion, nombresComunidades = {}, nombresAutores = {} })
+export default function TarjetaPublicacion({publicacion, nombresComunidades = {}, nombresAutores = {}, es_moderador = false, al_eliminar = null})
 {
     const {id, titulo = '', tipos = [], tipo: _tipo = '', contenido = '', enlace = '', url_imagen = '', autor = '', comunidad = '', puntaje_votos = 0, total_comentarios = 0, etiqueta = '', fijada = false, creado_en,} = publicacion
 
@@ -43,6 +43,25 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
 
     //Estado local del puntaje para que el componente de votos pueda actualizarlo
     const [puntaje_local, setPuntajeLocal] = useState(puntaje_votos)
+
+    async function maneja_eliminar()
+    {
+        if(!confirm('¿Seguro que quieres eliminar esta publicación?'))
+            return
+
+        try
+        {
+            const resp = await fetch(`/api/publicaciones/${id}`, {method: 'DELETE', credentials: 'include'})
+
+            if(resp.ok && al_eliminar)
+                al_eliminar(id)
+        }
+
+        catch(e)
+        {
+            console.error('Error al eliminar publicación:', e)
+        }
+    }
 
     const nombre_comunidad = nombresComunidades[comunidad] || comunidad
 
@@ -176,6 +195,18 @@ export default function TarjetaPublicacion({ publicacion, nombresComunidades = {
                         Ver publicación
                     </Link>
                 </div>
+
+                {es_moderador && al_eliminar &&
+                    (
+                        <button
+                            className="tarjeta-publicacion-btn-eliminar"
+                            onClick={maneja_eliminar}
+                        >
+                            Eliminar
+                        </button>
+                    )
+                }
+
             </div>
         </article>
     )

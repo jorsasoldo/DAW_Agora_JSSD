@@ -1,8 +1,12 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
-import { useAutentifica } from '../contexto/ContextoUsuario.jsx'
+import {useState, useEffect, useCallback} from 'react'
+
+import {useParams, Link, useNavigate} from 'react-router-dom'
+
+import {useAutentifica} from '../contexto/ContextoUsuario.jsx'
+
 import ComponenteVotos from '../componentes/publicacion/ComponenteVotos.jsx'
 import ArbolComentarios from '../componentes/publicacion/ArbolComentarios.jsx'
+import PanelModeracion from '../componentes/moderacion/PanelModeracion.jsx'
 
 //Formatea la fecha/hora de cada publicacion
 //(Recicle la misma funcion de tiempo relativo que en la clase de la tarjeta de publicacion)
@@ -49,6 +53,8 @@ export default function PaginaPublicacion()
     const [cargandoComentarios, setCargandoComentarios] = useState(true)
     const [error, setError] = useState(null)
     const [puntajeLocal, setPuntajeLocal] = useState(0)
+    const [comnidad, setComnidad] = useState(null)
+    const [estadoPublicacion, setEstadoPublicacion] = useState({fijada: false, bloqueada: false})
 
     //Carga la publicacion con sus metadatos
     const carga_publicacion = useCallback(async () =>
@@ -71,6 +77,7 @@ export default function PaginaPublicacion()
                 throw new Error('Publicación no encontrada')
 
             setPublicacion(pub)
+            setEstadoPublicacion({fijada: pub.fijada ?? false, bloqueada: pub.bloqueada ?? false})
             setPuntajeLocal(pub.puntaje_votos ?? 0)
 
             if(pub.comunidad)
@@ -84,6 +91,7 @@ export default function PaginaPublicacion()
                         const com = await respComunidad.json()
 
                         setNombreComunidad(com.nombre || pub.comunidad)
+                        setComnidad(com)
                     }
 
                 }
@@ -321,17 +329,58 @@ export default function PaginaPublicacion()
                     </div>
                 </div>
             </article>
-
             {
+                //Panel de moderacion
             }
+
+            {usuario && comnidad && (comnidad?.moderadores?.includes(usuario?.id) || usuario?.rol === 'admin') &&
+                (
+                    <div className="pagina-publicacion-acciones-mod">
+                        <PanelModeracion
+                            comunidad_id={publicacion?.comunidad}
+                            es_moderador={comnidad?.moderadores?.includes(usuario?.id) ?? false}
+                            publicacion={{ id, ...estadoPublicacion }}
+                            al_actualizar={campos => setEstadoPublicacion(prev => ({ ...prev, ...campos}))}
+                        />
+
+                        <button
+                            className="tarjeta-publicacion-btn-eliminar"
+                            onClick={async () =>
+                            {
+                                if(!confirm('¿Seguro que quieres eliminar esta publicación?'))
+                                    return
+
+                                const resp = await fetch(`/api/publicaciones/${id}`, {method: 'DELETE', credentials: 'include'})
+
+                                if(resp.ok)
+                                    navigate(`/c/${comunidad}`)
+                            }}
+                        >
+                            Eliminar publicación
+                        </button>
+                    </div>
+                )
+            }
+
             <section className="pagina-publicacion-comentarios">
                 <h2 className="pagina-publicacion-comentarios-titulo">
                     Comentarios
                 </h2>
+                {
+                    //Aviso de comentarios bloqueados
+                }
+                {estadoPublicacion.bloqueada &&
+                    (
+                        <div className="panel-moderacion-comentarios-bloqueados">
+                            Los comentarios están bloqueados en esta publicación
+                        </div>
+                    )
+                }
 
                 {
                 }
-                {usuario &&
+
+                {usuario && !estadoPublicacion.bloqueada &&
                     (
                         <FormularioComentario
                             publicacion_id={id}
@@ -371,6 +420,7 @@ export default function PaginaPublicacion()
                                 comentarios={comentarios}
                                 publicacion_id={id}
                                 al_comentar={inserta_comentario_nuevo}
+                                es_moderador={comnidad?.moderadores?.includes(usuario?.id) ?? false}
                             />
                         )
                 }

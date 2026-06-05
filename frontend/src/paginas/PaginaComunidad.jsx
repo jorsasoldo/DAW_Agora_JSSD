@@ -5,6 +5,52 @@ import {useParams, Link} from 'react-router-dom'
 import {useAutentifica} from '../contexto/ContextoUsuario.jsx'
 
 import TarjetaPublicacion from '../componentes/publicacion/TarjetaPublicacion.jsx'
+import PanelModeracion from '../componentes/moderacion/PanelModeracion.jsx'
+
+function ListaModeradoresSidebar({moderadores})
+{
+    const [nombres, setNombres] = useState({})
+
+    useEffect(() =>
+    {
+        if(!moderadores?.length)
+            return
+
+        moderadores.forEach(async mod_id =>
+        {
+            try
+            {
+                const resp = await fetch(`/api/usuarios/${mod_id}`, {credentials: 'include'})
+
+                if(resp.ok)
+                {
+                    const datos = await resp.json()
+                    setNombres(prev => ({...prev, [mod_id]: datos.nombre_usuario || mod_id}))
+                }
+            }
+
+            catch
+            {
+
+            }
+        })
+    }, [moderadores])
+
+    return (
+                <ul className="comunidad-sidebar-moderadores">
+
+                    {moderadores.map(mod_id =>
+                        (
+                            <li key={mod_id} className="comunidad-sidebar-moderador">
+                                <Link to={`/u/${nombres[mod_id] || mod_id}`} className="comunidad-sidebar-moderador-link">
+                                    u/{nombres[mod_id] || '...'}
+                                </Link>
+                            </li>
+                        )
+                    )}
+                </ul>
+            )
+}
 
 export default function PaginaComunidad()
 {
@@ -39,8 +85,36 @@ export default function PaginaComunidad()
             setComunidad(datos)
 
             //Chevca si el usuario ya está suscrito
-            if(usuario?.comunidades_suscritas)
-                setSuscrito(usuario.comunidades_suscritas.includes(id))
+            if(typeof datos.suscrito === 'boolean')
+            {
+                setSuscrito(datos.suscrito)
+            }
+
+            else
+            {
+                try
+                {
+                    const respMiembros = await fetch(`/api/comunidades/${id}/miembros`, {credentials: 'include'})
+
+                    if(respMiembros.ok)
+                    {
+                        const miembros = await respMiembros.json()
+
+                        setSuscrito(Array.isArray(miembros) && usuario?.id ? miembros.some(m => m.id === usuario.id) : false)
+                    }
+
+                    else if(usuario?.comunidades_suscritas)
+                    {
+                        setSuscrito(usuario.comunidades_suscritas.includes(id))
+                    }
+                }
+
+                catch
+                {
+                    if(usuario?.comunidades_suscritas)
+                        setSuscrito(usuario.comunidades_suscritas.includes(id))
+                }
+            }
         }
 
         catch(e)
@@ -281,6 +355,8 @@ export default function PaginaComunidad()
                                             publicacion={pub}
                                             nombresComunidades={nombres_comunidad}
                                             nombresAutores={nombresAutores}
+                                            es_moderador={es_moderador}
+                                            al_eliminar={id_pub => setPublicaciones(prev => prev.filter(p => p.id !== id_pub))}
                                         />
                                     )
                                 )}
@@ -358,19 +434,27 @@ export default function PaginaComunidad()
                     )}
                     {
                     }
-                    {es_moderador &&
+
+                    {comunidad?.moderadores?.length > 0 &&
                         (
                             <div className="comunidad-sidebar-tarjeta">
                                 <div className="comunidad-sidebar-tarjeta-cabecera">
-                                    Herramientas de moderación
+                                    Moderadores
                                 </div>
-
                                 <div className="comunidad-sidebar-tarjeta-cuerpo">
-                                    <p className="comunidad-sidebar-mod-aviso">
-                                        Eres moderador de esta comunidad
-                                    </p>
+                                    <ListaModeradoresSidebar moderadores={comunidad.moderadores} />
                                 </div>
                             </div>
+                        )
+                    }
+
+                    {es_moderador &&
+                        (
+                            <PanelModeracion
+                                comunidad_id={id}
+                                es_moderador={es_moderador}
+                                al_agregar_moderador={carga_comunidad}
+                            />
                         )
                     }
                 </aside>
