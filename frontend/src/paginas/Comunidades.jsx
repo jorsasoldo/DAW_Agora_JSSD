@@ -4,6 +4,8 @@ import {Link} from 'react-router-dom'
 
 import ModalCrearComunidad from '../componentes/comunidad/ModalCrearComunidad.jsx'
 
+import {useAutentifica} from '../contexto/ContextoUsuario.jsx'
+
 export default function Comunidades()
 {
     const [comunidades, setComunidades] = useState([])
@@ -11,6 +13,8 @@ export default function Comunidades()
     const [error, setError] = useState(null)
     const [busqueda, setBusqueda] = useState('')
     const [modalAbierto, setModalAbierto] = useState(false)
+    const {usuario} = useAutentifica()
+    const [idsSuscritas, setIdsSuscritas] = useState([])
 
     const carga_comunidades = useCallback(async () =>
     {
@@ -43,7 +47,37 @@ export default function Comunidades()
 
     useEffect(() => {carga_comunidades()}, [carga_comunidades])
 
-    const comunidades_filtradas = comunidades.filter(c => c.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || c.descripcion?.toLowerCase().includes(busqueda.toLowerCase()))
+    useEffect(() =>
+    {
+        if(!usuario?.id)
+        {
+            setIdsSuscritas([])
+            return
+        }
+
+        async function carga_suscritas()
+        {
+            try
+            {
+                const resp = await fetch(`/api/usuarios/${usuario.id}`, {credentials: 'include'})
+
+                if(resp.ok)
+                {
+                    const datos = await resp.json()
+                    setIdsSuscritas(datos.comunidades_suscritas || [])
+                }
+            }
+
+            catch
+            {
+            }
+        }
+
+        carga_suscritas()
+    }, [usuario])
+
+    const comunidades_suscritas = comunidades.filter(c => idsSuscritas.includes(c.id))
+    const comunidades_filtradas = comunidades.filter(c => !idsSuscritas.includes(c.id)).filter(c => c.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || c.descripcion?.toLowerCase().includes(busqueda.toLowerCase()))
 
     function al_crear_comunidad()
     {
@@ -103,42 +137,52 @@ export default function Comunidades()
                 )
             }
 
-            {!cargando && !error && comunidades_filtradas.length === 0 &&
-                (
-                    <div className="pagina-comunidades-estado">
-                        <p className="pagina-inicio-estado-texto">
-                            {busqueda ? `No se encontraron comunidades con "${busqueda}"` : 'No hay comunidades todavía'}
-                        </p>
-                        {!busqueda &&
-                            (
-                                <button
-                                    className="btn-primary pagina-inicio-btn-crear"
-                                    onClick={() => setModalAbierto(true)}
-                                >
-                                    Crear la primera comunidad
-                                </button>
-                            )
-                        }
-                    </div>
-                )
-            }
-
-            {}
-            {!cargando && !error && comunidades_filtradas.length > 0 &&
+            {!cargando && !error && comunidades_suscritas.length > 0 &&
                 (
                     <>
-                        <p className="pagina-comunidades-contador">
-                            {comunidades_filtradas.length} comunidad{comunidades_filtradas.length !== 1 ? 'es' : ''}
-                            {busqueda && ` para "${busqueda}"`}
-                        </p>
-
+                        <h2 className="pagina-comunidades-seccion-titulo">Mis comunidades</h2>
                         <div className="pagina-comunidades-cuadricula">
-                            {comunidades_filtradas.map(comunidad =>
+                            {comunidades_suscritas.map(comunidad =>
                                 (
                                     <TarjetaComunidad key={comunidad.id} comunidad={comunidad} />
                                 )
                             )}
                         </div>
+                    </>
+                )
+            }
+
+            {!cargando && !error &&
+                (
+                    <>
+                        <h2 className="pagina-comunidades-seccion-titulo">Explorar comunidades</h2>
+
+                        {comunidades_filtradas.length === 0
+                            ?
+                            (
+                                <div className="pagina-comunidades-estado">
+                                    <p className="pagina-inicio-estado-texto">
+                                        {busqueda ? `No se encontraron comunidades con "${busqueda}"` : 'No hay más comunidades'}
+                                    </p>
+                                </div>
+                            )
+                            :
+                            (
+                                <>
+                                    <p className="pagina-comunidades-contador">
+                                        {comunidades_filtradas.length} comunidad{comunidades_filtradas.length !== 1 ? 'es' : ''}
+                                        {busqueda && ` para "${busqueda}"`}
+                                    </p>
+                                    <div className="pagina-comunidades-cuadricula">
+                                        {comunidades_filtradas.map(comunidad =>
+                                            (
+                                                <TarjetaComunidad key={comunidad.id} comunidad={comunidad} />
+                                            )
+                                        )}
+                                    </div>
+                                </>
+                            )
+                        }
                     </>
                 )
             }

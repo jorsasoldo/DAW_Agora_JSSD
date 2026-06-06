@@ -3841,3 +3841,11 @@ th
     font-size: 0.8rem;
     color: #9ca3af;
 }
+
+.pagina-comunidades-seccion-titulo
+{
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 1.5rem 0 0.75rem;
+    color: #1a1a1a;
+}

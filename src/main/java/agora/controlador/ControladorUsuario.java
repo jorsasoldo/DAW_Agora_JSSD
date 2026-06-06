@@ -100,6 +100,17 @@ public class ControladorUsuario
 
     private Map<String, Object> usuario_publico(Usuario u)
     {
-        return Map.of("id", u.getId() != null ? u.getId() : "", "nombre_usuario", u.getNombreUsuario() != null ? u.getNombreUsuario() : "",  "email", u.getEmail() != null ? u.getEmail() : "", "foto_perfil", u.getFotoPerfil() != null ? u.getFotoPerfil() : "", "biografia", u.getBiografia() != null ? u.getBiografia() : "", "karma", u.getKarma(), "rol", u.getRol() != null ? u.getRol() : "", "creado_en", u.getCreadoEn() != null ? u.getCreadoEn().toString() : "");
+        Map<String, Object> datos = new java.util.HashMap<>();
+        datos.put("id", u.getId() != null ? u.getId() : "");
+        datos.put("nombre_usuario", u.getNombreUsuario() != null ? u.getNombreUsuario() : "");
+        datos.put("email", u.getEmail() != null ? u.getEmail() : "");
+        datos.put("foto_perfil", u.getFotoPerfil() != null ? u.getFotoPerfil() : "");
+        datos.put("biografia", u.getBiografia() != null ? u.getBiografia() : "");
+        datos.put("karma", u.getKarma());
+        datos.put("rol", u.getRol() != null ? u.getRol() : "");
+        datos.put("creado_en", u.getCreadoEn() != null ? u.getCreadoEn().toString() : "");
+        datos.put("comunidades_suscritas", u.getComunidadesSuscritas() != null ? u.getComunidadesSuscritas() : java.util.List.of());
+
+        return datos;
     }
 }
