@@ -15,6 +15,7 @@ export default function Comunidades()
     const [modalAbierto, setModalAbierto] = useState(false)
     const {usuario} = useAutentifica()
     const [idsSuscritas, setIdsSuscritas] = useState([])
+    const [visibles, setVisibles] = useState(5)
 
     const carga_comunidades = useCallback(async () =>
     {
@@ -77,7 +78,9 @@ export default function Comunidades()
     }, [usuario])
 
     const comunidades_suscritas = comunidades.filter(c => idsSuscritas.includes(c.id))
-    const comunidades_filtradas = comunidades.filter(c => !idsSuscritas.includes(c.id)).filter(c => c.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || c.descripcion?.toLowerCase().includes(busqueda.toLowerCase()))
+    const comunidades_para_explorar = comunidades.filter(c => !idsSuscritas.includes(c.id)).filter(c => c.nombre?.toLowerCase().includes(busqueda.toLowerCase()) || c.descripcion?.toLowerCase().includes(busqueda.toLowerCase())).sort((a, b) => (b.total_miembros || 0) - (a.total_miembros || 0))
+    const comunidades_filtradas = comunidades_para_explorar.slice(0, visibles)
+    const hay_mas = visibles < comunidades_para_explorar.length
 
     function al_crear_comunidad()
     {
@@ -112,7 +115,7 @@ export default function Comunidades()
                     className="pagina-comunidades-buscador"
                     placeholder="Buscar una comunidad..."
                     value={busqueda}
-                    onChange={e => setBusqueda(e.target.value)}
+                    onChange={e => {setBusqueda(e.target.value); setVisibles(5)}}
                 />
             </div>
 
@@ -170,7 +173,7 @@ export default function Comunidades()
                             (
                                 <>
                                     <p className="pagina-comunidades-contador">
-                                        {comunidades_filtradas.length} comunidad{comunidades_filtradas.length !== 1 ? 'es' : ''}
+                                        {comunidades_para_explorar.length} comunidad{comunidades_para_explorar.length !== 1 ? 'es' : ''}
                                         {busqueda && ` para "${busqueda}"`}
                                     </p>
                                     <div className="pagina-comunidades-cuadricula">
@@ -180,6 +183,18 @@ export default function Comunidades()
                                             )
                                         )}
                                     </div>
+                                    {hay_mas &&
+                                        (
+                                            <div className="pagina-comunidades-estado">
+                                                <button
+                                                    className="btn-primary"
+                                                    onClick={() => setVisibles(v => v + 5)}
+                                                >
+                                                    Explorar más comunidades
+                                                </button>
+                                            </div>
+                                        )
+                                    }
                                 </>
                             )
                         }
