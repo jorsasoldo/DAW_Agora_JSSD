@@ -41,7 +41,7 @@ public class ControladorComunidad
     @GetMapping
     public ResponseEntity<?> listar()
     {
-        List<Comunidad> lista = repositorio_comunidad.findAll();
+        List<Comunidad> lista = repositorio_comunidad.findAll().stream().filter(c -> !c.getEsPrivada()).toList();
 
         return ResponseEntity.ok(lista.stream().map(this::nodo_comunidad).toList());
     }
@@ -89,6 +89,13 @@ public class ControladorComunidad
         nueva.setTotalMiembros(0);
 
         repositorio_comunidad.save(nueva);
+
+        //Suscribe al creador
+        Query qu = Query.query(Criteria.where("_id").is(new ObjectId(id_usuario)));
+        mongo_template.updateFirst(qu, new Update().addToSet("comunidades_suscritas", new ObjectId(nueva.getId())), Usuario.class);
+
+        Query qc = Query.query(Criteria.where("_id").is(new ObjectId(nueva.getId())));
+        mongo_template.updateFirst(qc, new Update().inc("total_miembros", 1), Comunidad.class);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("mensaje", "Comunidad creada", "id", nueva.getId()));
     }
@@ -212,8 +219,124 @@ public class ControladorComunidad
         return ResponseEntity.ok(resultado);
     }
 
+    @PostMapping("/{id}/invitar")
+    public ResponseEntity<?> invitar(@PathVariable String id, @RequestBody Map<String, String> body, HttpServletRequest req)
+    {
+        String id_usuario = (String)req.getAttribute("jwt_usuario_id");
+        String rol = (String)req.getAttribute("jwt_rol");
+
+        Comunidad c = repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
+
+        if(!c.getEsPrivada())
+            return ResponseEntity.badRequest().body(Map.of("error", "La comunidad no es privada"));
+
+        boolean es_moderador = c.getModeradores() != null && c.getModeradores().contains(id_usuario);
+
+        if(!"admin".equals(rol) && !es_moderador)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Solo un moderador puede invitar"));
+
+        String id_invitado = body.get("usuario_id");
+
+        if(id_invitado == null || !id_invitado.matches("[0-9a-fA-F]{24}"))
+            return ResponseEntity.badRequest().body(Map.of("error", "Id de usuario inválido"));
+
+        if(!repositorio_usuario.existsById(id_invitado))
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Usuario no encontrado"));
+
+        //Si ya es miembro se no invita
+        Usuario invitado = repositorio_usuario.findById(id_invitado).get();
+
+        if(invitado.getComunidadesSuscritas() != null && invitado.getComunidadesSuscritas().contains(id))
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "El usuario ya es miembro"));
+
+        //Agrega a la lista de pendientes de la comunidad
+        Query qc = Query.query(Criteria.where("_id").is(new ObjectId(id)));
+        mongo_template.updateFirst(qc, new Update().addToSet("invitados_pendientes", new ObjectId(id_invitado)), Comunidad.class);
+
+        return ResponseEntity.ok(Map.of("mensaje", "Invitación enviada"));
+    }
+
+    @PostMapping("/{id}/aceptar-invitacion")
+    public ResponseEntity<?> aceptar_invitacion(@PathVariable String id, HttpServletRequest req)
+    {
+        String id_usuario = (String)req.getAttribute("jwt_usuario_id");
+
+        Comunidad c = repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
+
+        List<String> pendientes = c.getInvitadosPendientes();
+
+        if(pendientes == null || !pendientes.contains(id_usuario))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "No tienes una invitación pendiente para esta comunidad"));
+
+        Usuario u = repositorio_usuario.findById(id_usuario).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuario no encontrado"));
+
+        if(u.getComunidadesSuscritas() != null && u.getComunidadesSuscritas().contains(id))
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Ya eres miembro de esta comunidad"));
+
+        //Suscribe al usuario
+        Query qu = Query.query(Criteria.where("_id").is(new ObjectId(id_usuario)));
+        mongo_template.updateFirst(qu, new Update().addToSet("comunidades_suscritas", new ObjectId(id)), Usuario.class);
+
+        //Incrementa el contador de miembros
+        Query qc = Query.query(Criteria.where("_id").is(new ObjectId(id)));
+        mongo_template.updateFirst(qc, new Update().inc("total_miembros", 1), Comunidad.class);
+
+        //Quita de la lista de pendientes
+        mongo_template.updateFirst(qc, new Update().pull("invitados_pendientes", new ObjectId(id_usuario)), Comunidad.class);
+
+        return ResponseEntity.ok(Map.of("mensaje", "Te has unido a la comunidad"));
+    }
+
+    @PostMapping("/{id}/rechazar-invitacion")
+    public ResponseEntity<?> rechazar_invitacion(@PathVariable String id, HttpServletRequest req)
+    {
+        String id_usuario =(String)req.getAttribute("jwt_usuario_id");
+
+        Comunidad c = repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
+
+        List<String> pendientes = c.getInvitadosPendientes();
+
+        if(pendientes == null || !pendientes.contains(id_usuario))
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "No tienes una invitación pendiente para esta comunidad"));
+
+        //Quita al usuario de la lista de invitados pendientes
+        Query qc = Query.query(Criteria.where("_id").is(new ObjectId(id)));
+        mongo_template.updateFirst(qc, new Update().pull("invitados_pendientes", new ObjectId(id_usuario)), Comunidad.class);
+
+        return ResponseEntity.ok(Map.of("mensaje", "Invitación rechazada"));
+    }
+
+    @GetMapping("/invitaciones-pendientes")
+    public ResponseEntity<?> invitaciones_pendientes(HttpServletRequest req)
+    {
+        String id_usuario = (String)req.getAttribute("jwt_usuario_id");
+
+        if(id_usuario == null)
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "No autenticado"));
+
+        //Busca todas las comunidades privadas donde el usuario tiene invitacion pendiente
+        Query q = Query.query(Criteria.where("es_privada").is(true).and("invitados_pendientes").is(new ObjectId(id_usuario)));
+
+        List<Comunidad> comunidades = mongo_template.find(q, Comunidad.class);
+
+        return ResponseEntity.ok(comunidades.stream().map(this::nodo_comunidad).toList());
+    }
+
     private Map<String, Object> nodo_comunidad(Comunidad c)
     {
-        return Map.of("id", c.getId() != null ? c.getId() : "", "nombre", c.getNombre() != null ? c.getNombre() : "", "descripcion", c.getDescripcion() != null ? c.getDescripcion() : "", "banner", c.getBanner() != null ? c.getBanner() : "", "icono", c.getIcono() != null ? c.getIcono() : "", "total_miembros", c.getTotalMiembros(), "creado_por", c.getCreadoPor() != null ? c.getCreadoPor() : "", "es_privada", c.getEsPrivada(), "moderadores", c.getModeradores() != null ? c.getModeradores() : List.of(), "reglas", c.getReglas() != null ? c.getReglas() : List.of());
+        Map<String, Object> datos = new java.util.HashMap<>();
+        datos.put("id", c.getId() != null ? c.getId() : "");
+        datos.put("nombre", c.getNombre() != null ? c.getNombre() : "");
+        datos.put("descripcion", c.getDescripcion() != null ? c.getDescripcion() : "");
+        datos.put("banner", c.getBanner() != null ? c.getBanner() : "");
+        datos.put("icono", c.getIcono() != null ? c.getIcono() : "");
+        datos.put("total_miembros", c.getTotalMiembros());
+        datos.put("creado_por", c.getCreadoPor() != null ? c.getCreadoPor() : "");
+        datos.put("es_privada", c.getEsPrivada());
+        datos.put("moderadores", c.getModeradores() != null ? c.getModeradores() : List.of());
+        datos.put("reglas", c.getReglas() != null ? c.getReglas() : List.of());
+        datos.put("invitados_pendientes", c.getInvitadosPendientes()  != null ? c.getInvitadosPendientes() : List.of());
+
+        return datos;
     }
 }

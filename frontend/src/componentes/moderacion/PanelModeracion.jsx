@@ -1,6 +1,6 @@
 import {useState, useEffect, useRef} from 'react'
 
-export default function PanelModeracion({comunidad_id, es_moderador, publicacion, al_actualizar, al_agregar_moderador})
+export default function PanelModeracion({comunidad_id, es_moderador, es_privada, publicacion, al_actualizar, al_agregar_moderador})
 {
     const [fijada, setFijada] = useState(publicacion?.fijada ?? false)
     const [bloqueada, setBloqueada] = useState(publicacion?.bloqueada ?? false)
@@ -19,6 +19,16 @@ export default function PanelModeracion({comunidad_id, es_moderador, publicacion
     const [cargandoMiembros, setCargandoMiembros] = useState(false)
     const [mostrarDropdown, setMostrarDropdown] = useState(false)
     const refBuscadorMod = useRef(null)
+
+    const [mostrarModalInvitar, setMostrarModalInvitar] = useState(false)
+    const [busquedaInvitar, setBusquedaInvitar] = useState('')
+    const [usuarioInvitar, setUsuarioInvitar] = useState(null)
+    const [usuariosCargados, setUsuariosCargados] = useState([])
+    const [cargandoInvitar, setCargandoInvitar] = useState(false)
+    const [errorInvitar, setErrorInvitar] = useState(null)
+    const [exitoInvitar, setExitoInvitar] = useState(false)
+    const [mostrarDropdownInvitar, setMostrarDropdownInvitar] = useState(false)
+    const refBuscadorInvitar = useRef(null)
 
     const en_publicacion = publicacion != null
 
@@ -94,6 +104,9 @@ export default function PanelModeracion({comunidad_id, es_moderador, publicacion
         {
             if(refBuscadorMod.current && !refBuscadorMod.current.contains(e.target))
                 setMostrarDropdown(false)
+
+            if(refBuscadorInvitar.current && !refBuscadorInvitar.current.contains(e.target))
+                setMostrarDropdownInvitar(false)
         }
 
         document.addEventListener('mousedown', cierra_dropdown)
@@ -113,11 +126,9 @@ export default function PanelModeracion({comunidad_id, es_moderador, publicacion
         {
             const resp = await fetch(`/api/comunidades/${comunidad_id}/miembros`, {credentials: 'include'})
 
-            if(resp.ok)
-            {
-                const datos = await resp.json()
-                setMiembrosComunidad(Array.isArray(datos) ? datos : [])
-            }
+            const miembros = resp.ok ? await resp.json() : []
+
+            setMiembrosComunidad(Array.isArray(miembros) ? miembros : [])
         }
 
         catch(e)
@@ -128,6 +139,80 @@ export default function PanelModeracion({comunidad_id, es_moderador, publicacion
         finally
         {
             setCargandoMiembros(false)
+        }
+    }
+
+    async function carga_usuarios_para_invitar()
+    {
+        setUsuariosCargados([])
+    }
+
+    async function busca_usuarios_para_invitar(termino)
+    {
+        if(!termino || termino.length < 2)
+        {
+            setUsuariosCargados([])
+
+            return
+        }
+
+        setCargandoInvitar(true)
+
+        try
+        {
+            const [respBusqueda, respMiembros] = await Promise.all([fetch(`/api/buscar?q=${encodeURIComponent(termino)}`, {credentials: 'include'}), fetch(`/api/comunidades/${comunidad_id}/miembros`, {credentials: 'include'})])
+
+            const resultados = respBusqueda.ok ? await respBusqueda.json() : {}
+
+            const miembros = respMiembros.ok ? await respMiembros.json() : []
+
+            const ids_miembros = new Set(Array.isArray(miembros) ? miembros.map(m => m.id) : [])
+
+            const usuarios_encontrados = Array.isArray(resultados.usuarios) ? resultados.usuarios.filter(u => !ids_miembros.has(u.id)) : []
+
+            setUsuariosCargados(usuarios_encontrados)
+        }
+
+        catch(e)
+        {
+            console.error('Error al buscar usuarios:', e)
+        }
+
+        finally
+        {
+            setCargandoInvitar(false)
+        }
+    }
+
+    async function maneja_invitar()
+    {
+        if(!usuarioInvitar)
+            return
+
+        setErrorInvitar(null)
+        setExitoInvitar(false)
+
+        try
+        {
+            const resp = await fetch(`/api/comunidades/${comunidad_id}/invitar`, {method: 'POST', headers: {'Content-Type': 'application/json'}, credentials: 'include', body: JSON.stringify({usuario_id: usuarioInvitar.id})})
+
+            if(!resp.ok)
+            {
+                const datos = await resp.json().catch(() => ({}))
+
+                throw new Error(datos.error || `Error ${resp.status}`)
+            }
+
+            setExitoInvitar(true)
+            setUsuarioInvitar(null)
+            setBusquedaInvitar('')
+
+            setTimeout(() => { setMostrarModalInvitar(false); setExitoInvitar(false)}, 1500)
+        }
+
+        catch(e)
+        {
+            setErrorInvitar(e.message)
         }
     }
 
@@ -197,50 +282,98 @@ export default function PanelModeracion({comunidad_id, es_moderador, publicacion
                             {en_publicacion &&
                                 (
                                     <div className="panel-moderacion-grupo">
-                                        <p className="panel-moderacion-grupo-titulo">Publicación</p>
+                                        <p className="panel-moderacion-grupo-titulo">Moderadores</p>
 
                                         <button
-                                            className={`panel-moderacion-btn ${fijada ? 'panel-moderacion-btn--activo' : ''}`}
-                                            onClick={maneja_fijar}
-                                            disabled={cargandoFijar}
+                                            className="panel-moderacion-btn"
+                                            onClick={() =>
+                                            {
+                                                setMostrarModalMod(true)
+                                                setErrorMod(null)
+                                                setExitoMod(false)
+                                                setIdNuevoMod('')
+                                                setBusquedaMod('')
+                                                setMiembrosComunidad([])
+                                                setUsuarioSeleccionado(null)
+                                                setMostrarDropdown(false)
+                                                carga_miembros_comunidad()
+                                            }}
                                         >
-                                            {cargandoFijar ? '...' : fijada ? 'Desfijar publicación' : 'Fijar publicación'}
+                                            + Agregar moderador
                                         </button>
 
-                                        <button
-                                            className={`panel-moderacion-btn ${bloqueada ? 'panel-moderacion-btn--peligro-activo' : 'panel-moderacion-btn--peligro'}`}
-                                            onClick={maneja_bloquear}
-                                            disabled={cargandoBloquear}
-                                        >
-                                            {cargandoBloquear ? '...' : bloqueada ? 'Reabrir comentarios' : 'Bloquear comentarios'}
-                                        </button>
+                                        {es_privada &&
+                                            (
+                                                <button
+                                                    className="panel-moderacion-btn"
+                                                    onClick={() =>
+                                                    {
+                                                        setMostrarModalInvitar(true)
+                                                        setErrorInvitar(null)
+                                                        setExitoInvitar(false)
+                                                        setBusquedaInvitar('')
+                                                        setUsuarioInvitar(null)
+                                                        setUsuariosCargados([])
+                                                        setMostrarDropdownInvitar(false)
+                                                        carga_usuarios_para_invitar()
+                                                    }}
+                                                >
+                                                    + Invitar usuario
+                                                </button>
+                                            )
+                                        }
                                     </div>
                                 )
                             }
                             {
                                 //Seccion de moderadores
                             }
-                            <div className="panel-moderacion-grupo">
-                                <p className="panel-moderacion-grupo-titulo">Moderadores</p>
+                            {!en_publicacion &&
+                                (
+                                    <div className="panel-moderacion-grupo">
+                                        <p className="panel-moderacion-grupo-titulo">Moderadores</p>
 
-                                <button
-                                    className="panel-moderacion-btn"
-                                    onClick={() =>
-                                    {
-                                        setMostrarModalMod(true)
-                                        setErrorMod(null)
-                                        setExitoMod(false)
-                                        setIdNuevoMod('')
-                                        setBusquedaMod('')
-                                        setMiembrosComunidad([])
-                                        setUsuarioSeleccionado(null)
-                                        setMostrarDropdown(false)
-                                        carga_miembros_comunidad()
-                                    }}
-                                >
-                                    + Agregar moderador
-                                </button>
-                            </div>
+                                        <button
+                                            className="panel-moderacion-btn"
+                                            onClick={() =>
+                                            {
+                                                setMostrarModalMod(true)
+                                                setErrorMod(null)
+                                                setExitoMod(false)
+                                                setIdNuevoMod('')
+                                                setBusquedaMod('')
+                                                setMiembrosComunidad([])
+                                                setUsuarioSeleccionado(null)
+                                                setMostrarDropdown(false)
+                                                carga_miembros_comunidad()
+                                            }}
+                                        >
+                                            + Agregar moderador
+                                        </button>
+
+                                        {es_privada &&
+                                            (
+                                                <button
+                                                    className="panel-moderacion-btn"
+                                                    onClick={() =>
+                                                    {
+                                                        setMostrarModalInvitar(true)
+                                                        setErrorInvitar(null)
+                                                        setExitoInvitar(false)
+                                                        setBusquedaInvitar('')
+                                                        setUsuarioInvitar(null)
+                                                        setUsuariosCargados([])
+                                                        setMostrarDropdownInvitar(false)
+                                                        carga_usuarios_para_invitar()
+                                                    }}
+                                                >
+                                                    + Invitar usuario
+                                                </button>
+                                            )
+                                        }
+                                    </div>
+                                )
+                            }
                         </div>
                     </div>
 
@@ -294,7 +427,7 @@ export default function PanelModeracion({comunidad_id, es_moderador, publicacion
                                                         <input
                                                             type="text"
                                                             className="modal-campo-input"
-                                                            placeholder={cargandoMiembros ? 'Cargando miembros…' : 'Buscar entre suscriptores…'}
+                                                            placeholder={cargandoMiembros ? 'Cargando usuarios…' : 'Buscar usuario para invitar…'}
                                                             value={busquedaMod}
                                                             onChange={e => { setBusquedaMod(e.target.value); setMostrarDropdown(true)}}
                                                             onFocus={() => setMostrarDropdown(true)}
@@ -358,6 +491,117 @@ export default function PanelModeracion({comunidad_id, es_moderador, publicacion
                                             disabled={enviando_mod || !usuarioSeleccionado || exitoMod}
                                         >
                                             {enviando_mod ? 'Agregando...' : 'Agregar'}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    {mostrarModalInvitar &&
+                        (
+                            <div
+                                className="modal-overlay"
+                                onClick={e => {if(e.target === e.currentTarget) setMostrarModalInvitar(false)}}
+                            >
+                                <div className="modal-contenedor">
+                                    <div className="modal-cabecera">
+                                        <h2 className="modal-titulo">Invitar miembro</h2>
+
+                                        <button
+                                            className="modal-btn-cerrar"
+                                            onClick={() => setMostrarModalInvitar(false)}
+                                            aria-label="Cerrar"
+                                        >
+                                            X
+                                        </button>
+                                    </div>
+
+                                    <div className="modal-formulario">
+                                        <div className="modal-campo">
+                                            <label className="modal-campo-label">
+                                                Buscar usuario <span className="modal-campo-requerido">*</span>
+                                            </label>
+
+                                            {usuarioInvitar
+                                                ?
+                                                (
+                                                    <div className="modal-usuario-seleccionado">
+                                                        <span className="modal-usuario-seleccionado-nombre">u/{usuarioInvitar.nombre_usuario}</span>
+                                                        <button
+                                                            className="modal-usuario-seleccionado-quitar"
+                                                            onClick={() => {setUsuarioInvitar(null); setBusquedaInvitar('')}}
+                                                            disabled={exitoInvitar}
+                                                            type="button"
+                                                        >
+                                                            X
+                                                        </button>
+                                                    </div>
+                                                )
+                                                :
+                                                (
+                                                    <div className="publicar-comunidad-wrapper" ref={refBuscadorInvitar}>
+                                                        <input
+                                                            type="text"
+                                                            className="modal-campo-input"
+                                                            placeholder={cargandoInvitar ? 'Cargando usuarios…' : 'Buscar por nombre de usuario'}
+                                                            value={busquedaInvitar}
+                                                            onChange={e => { setBusquedaInvitar(e.target.value); setMostrarDropdownInvitar(true); busca_usuarios_para_invitar(e.target.value)}}
+                                                            onFocus={() => setMostrarDropdownInvitar(true)}
+                                                            disabled={exitoInvitar || cargandoInvitar}
+                                                            autoComplete="off"
+                                                        />
+
+                                                        {mostrarDropdownInvitar &&
+                                                            (
+                                                                <div className="publicar-comunidad-dropdown">
+                                                                    {usuariosCargados
+                                                                        .filter(u => u.nombre_usuario?.toLowerCase().includes(busquedaInvitar.toLowerCase()))
+                                                                        .map(u =>
+                                                                            (
+                                                                                <div
+                                                                                    key={u.id}
+                                                                                    className="publicar-comunidad-opcion"
+                                                                                    onMouseDown={() => {setUsuarioInvitar(u); setBusquedaInvitar(''); setMostrarDropdownInvitar(false)}}
+                                                                                >
+                                                                                    <span className="publicar-comunidad-opcion-prefijo">u/</span>{u.nombre_usuario}
+                                                                                </div>
+                                                                            )
+                                                                        )
+                                                                    }
+
+                                                                    {usuariosCargados.filter(u => u.nombre_usuario?.toLowerCase().includes(busquedaInvitar.toLowerCase())).length === 0 &&
+                                                                        <div className="publicar-comunidad-vacio">
+                                                                            {cargandoInvitar ? 'Cargando...' : 'Sin resultados'}
+                                                                        </div>
+                                                                    }
+                                                                </div>
+                                                            )
+                                                        }
+                                                    </div>
+                                                )
+                                            }
+                                        </div>
+
+                                        {errorInvitar && <p className="modal-error">{errorInvitar}</p>}
+                                        {exitoInvitar && <p className="panel-moderacion-exito">Invitación enviada correctamente</p>}
+                                    </div>
+
+                                    <div className="modal-pie">
+                                        <button
+                                            className="modal-btn-cancelar"
+                                            onClick={() => setMostrarModalInvitar(false)}
+                                            disabled={exitoInvitar}
+                                        >
+                                            Cancelar
+                                        </button>
+
+                                        <button
+                                            className="modal-btn-enviar"
+                                            onClick={maneja_invitar}
+                                            disabled={!usuarioInvitar || exitoInvitar}
+                                        >
+                                            Invitar
                                         </button>
                                     </div>
                                 </div>

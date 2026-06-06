@@ -29,6 +29,8 @@ public class Comunidad
     private Date creadoEn;
     @Field("es_privada")
     private boolean esPrivada;
+    @Field("invitados_pendientes")
+    private List<ObjectId> invitadosPendientes;
 
     public Comunidad()
     {
@@ -158,5 +160,21 @@ public class Comunidad
     public void setEsPrivada(boolean esPrivada)
     {
         this.esPrivada = esPrivada;
+    }
+
+    public List<String> getInvitadosPendientes()
+    {
+        if(invitadosPendientes == null)
+            return null;
+
+        return invitadosPendientes.stream().map(ObjectId::toHexString).collect(Collectors.toList());
+    }
+
+    public void setInvitadosPendientes(List<String> ids)
+    {
+        if(ids == null)
+            {this.invitadosPendientes = null; return;}
+
+        this.invitadosPendientes = ids.stream().map(ObjectId::new).collect(Collectors.toList());
     }
 }

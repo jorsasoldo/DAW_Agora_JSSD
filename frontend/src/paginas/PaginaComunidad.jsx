@@ -227,6 +227,37 @@ export default function PaginaComunidad()
         }
     }
 
+    async function acepta_invitacion()
+    {
+        if(!usuario)
+            return
+
+        setCargandoSuscripcion(true)
+
+        try
+        {
+            const resp = await fetch(`/api/comunidades/${id}/aceptar-invitacion`, {method: 'POST', credentials: 'include'})
+
+            if(resp.ok)
+            {
+                setSuscrito(true)
+                setComunidad(prev => prev ? {...prev, total_miembros: prev.total_miembros + 1} : prev)
+
+                //Recarga para limpiar la invitacion pendiente
+                carga_comunidad()
+            }
+        }
+
+        catch
+        {
+        }
+
+        finally
+        {
+            setCargandoSuscripcion(false)
+        }
+    }
+
     if(cargando)
     {
         return(
@@ -279,7 +310,19 @@ export default function PaginaComunidad()
                     </div>
 
                     <div className="pagina-comunidad-acciones">
-                        {usuario &&
+                        {usuario && !suscrito && comunidad?.es_privada && comunidad?.invitados_pendientes?.includes(usuario.id) &&
+                            (
+                                <button
+                                    className="pagina-comunidad-btn-suscripcion"
+                                    onClick={acepta_invitacion}
+                                    disabled={cargandoSuscripcion}
+                                >
+                                    {cargandoSuscripcion ? '...' : 'Aceptar invitación'}
+                                </button>
+                            )
+                        }
+
+                        {usuario && (!comunidad?.es_privada || suscrito) &&
                             (
                                 <button
                                     className={`pagina-comunidad-btn-suscripcion ${suscrito ? 'pagina-comunidad-btn-suscripcion--suscrito' : ''}`}
@@ -453,6 +496,7 @@ export default function PaginaComunidad()
                             <PanelModeracion
                                 comunidad_id={id}
                                 es_moderador={es_moderador}
+                                es_privada={comunidad?.es_privada}
                                 al_agregar_moderador={carga_comunidad}
                             />
                         )

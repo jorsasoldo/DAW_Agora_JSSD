@@ -3849,3 +3849,50 @@ th
     margin: 1.5rem 0 0.75rem;
     color: #1a1a1a;
 }
+
+.tarjeta-invitacion
+{
+    cursor: default;
+    pointer-events: none;
+}
+
+.tarjeta-invitacion-acciones
+{
+    display: flex;
+    gap: .6rem;
+    padding: .8rem 1rem 1rem;
+    pointer-events: all;
+}
+
+.tarjeta-invitacion-btn-aceptar,
+.tarjeta-invitacion-btn-rechazar
+{
+    flex: 1;
+    padding: .45rem .8rem;
+    border: none;
+    border-radius: 6px;
+    font-size: .82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity .15s, transform .1s;
+    pointer-events: all;
+}
+
+.tarjeta-invitacion-btn-aceptar
+{
+    background: #2a70ec;
+    color: #fff;
+}
+
+.tarjeta-invitacion-btn-rechazar
+{
+    background: transparent;
+    color: #1a55c0;
+    border: 1px solid #ddd;
+}
+
+.tarjeta-invitacion-btn-aceptar:hover  {opacity: .85;}
+.tarjeta-invitacion-btn-rechazar:hover {background: #a8c4f5;}
+
+.tarjeta-invitacion-btn-aceptar:active,
+.tarjeta-invitacion-btn-rechazar:active {transform: scale(.97);}

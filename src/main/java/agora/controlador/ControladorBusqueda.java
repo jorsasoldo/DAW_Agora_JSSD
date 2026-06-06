@@ -36,7 +36,7 @@ public class ControladorBusqueda
 
         String termino = q.trim();
 
-        List<Map<String, Object>> comunidades = repositorio_comunidad.buscarPorTexto(termino).stream().map(c -> Map.<String, Object>of("id", c.getId() != null ? c.getId() : "", "nombre", c.getNombre() != null ? c.getNombre() : "", "descripcion", c.getDescripcion() != null ? c.getDescripcion() : "", "icono", c.getIcono() != null ? c.getIcono() : "", "total_miembros", c.getTotalMiembros(), "es_privada", c.getEsPrivada())).toList();
+        List<Map<String, Object>> comunidades = repositorio_comunidad.buscarPorTexto(termino).stream().filter(c -> !c.getEsPrivada()).map(c -> Map.<String, Object>of("id", c.getId() != null ? c.getId() : "", "nombre", c.getNombre() != null ? c.getNombre() : "", "descripcion", c.getDescripcion() != null ? c.getDescripcion() : "", "icono", c.getIcono() != null ? c.getIcono() : "", "total_miembros", c.getTotalMiembros(), "es_privada", c.getEsPrivada())).toList();
 
         List<Map<String, Object>> publicaciones = repositorio_publicacion.findByTituloContainingIgnoreCase(termino, Sort.by(Sort.Direction.DESC, "creado_en")).stream().map(p -> Map.<String, Object>of("id", p.getId() != null ? p.getId() : "", "titulo", p.getTitulo() != null ? p.getTitulo() : "", "autor", p.getAutor() != null ? p.getAutor().toString() : "", "comunidad", p.getComunidad() != null ? p.getComunidad().toString() : "", "puntaje_votos", p.getPuntajeVotos(), "total_comentarios", p.getTotalComentarios())).toList();
 
