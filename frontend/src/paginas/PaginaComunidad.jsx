@@ -1,6 +1,6 @@
 import {useState, useEffect, useCallback} from 'react'
 
-import {useParams, Link} from 'react-router-dom'
+import {useParams, Link, useNavigate} from 'react-router-dom'
 
 import {useAutentifica} from '../contexto/ContextoUsuario.jsx'
 
@@ -66,6 +66,7 @@ export default function PaginaComunidad()
     const [suscrito, setSuscrito] = useState(false)
     const [cargandoSuscripcion, setCargandoSuscripcion] = useState(false)
     const [orden, setOrden] = useState('nuevo')
+    const navigate = useNavigate()
 
     const carga_comunidad = useCallback(async () =>
     {
@@ -280,6 +281,7 @@ export default function PaginaComunidad()
         )
     }
 
+    const es_admin_comunidad = usuario && comunidad?.creado_por === usuario.id
     const es_moderador = usuario && comunidad?.moderadores?.includes(usuario.id)
 
     const nombres_comunidad = comunidad ? {[id]: comunidad.nombre} : {}
@@ -496,10 +498,12 @@ export default function PaginaComunidad()
                             <PanelModeracion
                                 comunidad_id={id}
                                 es_moderador={es_moderador}
+                                es_admin_comunidad={es_admin_comunidad}
                                 es_privada={comunidad?.es_privada}
                                 al_agregar_moderador={carga_comunidad}
                                 comunidad={comunidad}
                                 al_actualizar_comunidad={carga_comunidad}
+                                al_eliminar_comunidad={() => navigate('/comunidades')}
                             />
                         )
                     }

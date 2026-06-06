@@ -277,17 +277,90 @@ public class ControladorComunidad
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminar(@PathVariable String id, HttpServletRequest req)
     {
+        String id_usuario = (String)req.getAttribute("jwt_usuario_id");
         String rol = (String)req.getAttribute("jwt_rol");
 
-        if(!"admin".equals(rol))
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Acceso denegado"));
+        Comunidad c = repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
 
-        if(!repositorio_comunidad.existsById(id))
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Comunidad no encontrada"));
+        boolean es_admin_sistema = "admin".equals(rol);
+        boolean es_creador = c.getCreadoPor() != null && c.getCreadoPor().equals(id_usuario);
+
+        if(!es_admin_sistema && !es_creador)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Solo el administrador de la comunidad puede eliminarla"));
 
         repositorio_comunidad.deleteById(id);
 
         return ResponseEntity.ok(Map.of("mensaje", "Comunidad eliminada"));
+    }
+
+    @DeleteMapping("/{id}/moderadores/{mod_id}")
+    public ResponseEntity<?> eliminar_moderador(@PathVariable String id, @PathVariable String mod_id, HttpServletRequest req)
+    {
+        String id_usuario = (String)req.getAttribute("jwt_usuario_id");
+        String rol = (String)req.getAttribute("jwt_rol");
+
+        Comunidad c = repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
+
+        boolean es_admin_sistema = "admin".equals(rol);
+        boolean es_creador = c.getCreadoPor() != null && c.getCreadoPor().equals(id_usuario);
+
+        if(!es_admin_sistema && !es_creador)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Solo el administrador de la comunidad puede eliminar moderadores"));
+
+        if(!mod_id.matches("[0-9a-fA-F]{24}"))
+            return ResponseEntity.badRequest().body(Map.of("error", "Id de moderador inválido"));
+
+        //No permite que el creador se quite a sí mismo como mod
+        if(mod_id.equals(c.getCreadoPor()))
+            return ResponseEntity.badRequest().body(Map.of("error", "No puedes eliminar al administrador de la comunidad"));
+
+        Query q = Query.query(Criteria.where("_id").is(id));
+        mongo_template.updateFirst(q, new Update().pull("moderadores", new ObjectId(mod_id)), Comunidad.class);
+
+        return ResponseEntity.ok(Map.of("mensaje", "Moderador eliminado"));
+    }
+
+    @DeleteMapping("/{id}/miembros/{miembro_id}")
+    public ResponseEntity<?> eliminar_miembro(@PathVariable String id, @PathVariable String miembro_id, HttpServletRequest req)
+    {
+        String id_usuario = (String)req.getAttribute("jwt_usuario_id");
+        String rol = (String)req.getAttribute("jwt_rol");
+
+        Comunidad c = repositorio_comunidad.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Comunidad no encontrada"));
+
+        boolean es_admin_sistema = "admin".equals(rol);
+        boolean es_creador = c.getCreadoPor() != null && c.getCreadoPor().equals(id_usuario);
+        boolean es_moderador = c.getModeradores() != null && c.getModeradores().contains(id_usuario);
+
+        if(!es_admin_sistema && !es_creador && !es_moderador)
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "No tienes permisos para expulsar miembros"));
+
+        if(!miembro_id.matches("[0-9a-fA-F]{24}"))
+            return ResponseEntity.badRequest().body(Map.of("error", "Id de miembro inválido"));
+
+        if(miembro_id.equals(c.getCreadoPor()))
+            return ResponseEntity.badRequest().body(Map.of("error", "No puedes expulsar al administrador de la comunidad"));
+
+        //Verifica si era miembro antes de modificar
+        Usuario u = repositorio_usuario.findById(miembro_id).orElse(null);
+        boolean era_miembro = u != null && u.getComunidadesSuscritas() != null && u.getComunidadesSuscritas().contains(id);
+
+        //Quita la comunidad de comunuidades suscritas del usuario
+        Query qu = Query.query(Criteria.where("_id").is(new ObjectId(miembro_id)));
+        mongo_template.updateFirst(qu, new Update().pull("comunidades_suscritas", new ObjectId(id)), Usuario.class);
+
+        //Decrementa el contador solo si era miembro
+        if(era_miembro)
+        {
+            Query qc = Query.query(Criteria.where("_id").is(new ObjectId(id)));
+            mongo_template.updateFirst(qc, new Update().inc("total_miembros", -1), Comunidad.class);
+        }
+
+        //Si era mod tambien se quita de mods
+        Query qc2 = Query.query(Criteria.where("_id").is(new ObjectId(id)));
+        mongo_template.updateFirst(qc2, new Update().pull("moderadores", new ObjectId(miembro_id)), Comunidad.class);
+
+        return ResponseEntity.ok(Map.of("mensaje", "Miembro expulsado"));
     }
 
     @GetMapping("/{id}/miembros")

@@ -4084,3 +4084,64 @@ th
 .modal-regla-btn-eliminar:hover:not(:disabled) {color: #c0392b; background: #fff0f0;}
 
 .modal-regla-btn-eliminar:disabled {opacity: .4; cursor: not-allowed;}
+
+.panel-moderacion-btn--peligro
+{
+    background-color: transparent;
+    color: #dc2626;
+    border: 1px solid #dc2626;
+}
+
+.panel-moderacion-btn--peligro:hover:not(:disabled)
+{
+    background-color: #dc2626;
+    color: #ffffff;
+}
+
+.panel-mod-input-archivo-oculto
+{
+    display: none;
+}
+
+.panel-mod-confirmar-texto
+{
+    margin-bottom: 0.75rem;
+}
+
+.panel-mod-btn-confirmar-eliminar
+{
+    margin-left: 0.5rem;
+}
+
+.panel-mod-lista
+{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.panel-mod-lista--expulsar
+{
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.panel-mod-lista-item
+{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.panel-mod-btn-lista
+{
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+.panel-mod-mensaje-margen
+{
+    margin-top: 0.5rem;
+}
