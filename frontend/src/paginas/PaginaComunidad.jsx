@@ -498,6 +498,8 @@ export default function PaginaComunidad()
                                 es_moderador={es_moderador}
                                 es_privada={comunidad?.es_privada}
                                 al_agregar_moderador={carga_comunidad}
+                                comunidad={comunidad}
+                                al_actualizar_comunidad={carga_comunidad}
                             />
                         )
                     }

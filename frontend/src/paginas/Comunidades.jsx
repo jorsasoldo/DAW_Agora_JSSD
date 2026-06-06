@@ -315,13 +315,16 @@ export default function Comunidades()
 
 function TarjetaComunidad({comunidad})
 {
-    const {id, nombre, descripcion, total_miembros, icono, es_privada} = comunidad
+    const {id, nombre, descripcion, total_miembros, icono, banner, es_privada} = comunidad
 
     const iniciales = nombre ? nombre.slice(0, 2).toUpperCase() : 'C'
 
     return (
                 <Link to={`/c/${id}`} className="tarjeta-comunidad">
-                    <div className="tarjeta-comunidad-cabecera">
+                    <div
+                        className="tarjeta-comunidad-cabecera"
+                        style={banner ? {backgroundImage: `url(${banner})`, backgroundSize: 'cover', backgroundPosition: 'center'} : {}}
+                    >
                         {icono
                             ? <img src={icono} alt={nombre} className="tarjeta-comunidad-icono" />
                             :
@@ -353,18 +356,21 @@ function TarjetaComunidad({comunidad})
                         </p>
                     </div>
                 </Link>
-          )
+            )
 }
 
 function TarjetaInvitacion({comunidad, alAceptar, alRechazar})
 {
-    const {nombre, descripcion, total_miembros, icono} = comunidad
+    const {nombre, descripcion, total_miembros, icono, banner} = comunidad
 
     const iniciales = nombre ? nombre.slice(0, 2).toUpperCase() : 'C'
 
     return (
                 <div className="tarjeta-comunidad tarjeta-invitacion">
-                    <div className="tarjeta-comunidad-cabecera">
+                    <div
+                        className="tarjeta-comunidad-cabecera"
+                        style={banner ? {backgroundImage: `url(${banner})`, backgroundSize: 'cover', backgroundPosition: 'center'} : {}}
+                    >
                         {icono
                             ? <img src={icono} alt={nombre} className="tarjeta-comunidad-icono" />
                             :

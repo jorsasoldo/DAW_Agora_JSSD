@@ -73,6 +73,8 @@ public class ControladorComunidad
         String id_usuario = (String)req.getAttribute("jwt_usuario_id");
         String nombre = (String)body.get("nombre");
         String descripcion = (String)body.get("descripcion");
+        String banner = (String)body.get("banner");
+        String icono = (String)body.get("icono");
         boolean es_privada = "true".equalsIgnoreCase(String.valueOf(body.getOrDefault("es_privada", "false")));
 
         if(nombre == null || nombre.isBlank())
@@ -81,9 +83,45 @@ public class ControladorComunidad
         if(repositorio_comunidad.findByNombre(nombre).isPresent())
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Ya existe una comunidad con ese nombre"));
 
+        //Procesa las reglas del body
+        List<Map<String, String>> reglas = null;
+
+        Object reg = body.get("reglas");
+
+        if(reg instanceof List<?> lista)
+        {
+            reglas = new java.util.ArrayList<>();
+
+            for(Object item : lista)
+            {
+                if(item instanceof Map<?, ?> mapa)
+                {
+                    Map<String, String> regla = new java.util.HashMap<>();
+                    Object titulo = mapa.get("titulo");
+                    Object desc = mapa.get("descripcion");
+
+                    if(titulo != null && !titulo.toString().isBlank())
+                    {
+                        regla.put("titulo", titulo.toString().trim());
+
+                        if(desc != null && !desc.toString().isBlank())
+                            regla.put("descripcion", desc.toString().trim());
+
+                        reglas.add(regla);
+                    }
+                }
+            }
+
+            if(reglas.isEmpty())
+                reglas = null;
+        }
+
         Comunidad nueva = new Comunidad(nombre, id_usuario);
         nueva.setDescripcion(descripcion);
         nueva.setEsPrivada(es_privada);
+        nueva.setBanner(banner);
+        nueva.setIcono(icono);
+        nueva.setReglas(reglas);
         nueva.setModeradores(Collections.singletonList(id_usuario));
         nueva.setCreadoEn(new Date());
         nueva.setTotalMiembros(0);
@@ -166,7 +204,7 @@ public class ControladorComunidad
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> actualizar(@PathVariable String id, @RequestBody Map<String, String> body, HttpServletRequest req)
+    public ResponseEntity<?> actualizar(@PathVariable String id, @RequestBody Map<String, Object> body, HttpServletRequest req)
     {
         String id_usuario = (String)req.getAttribute("jwt_usuario_id");
         String rol = (String)req.getAttribute("jwt_rol");
@@ -176,18 +214,64 @@ public class ControladorComunidad
         boolean es_moderador = c.getModeradores() != null && c.getModeradores().contains(id_usuario);
 
         if(!"admin".equals(rol) && !es_moderador)
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Solo un moderador o admin puede edita_comentario la comunidad"));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Solo un moderador o admin puede editar la comunidad"));
+
+        String nombre = (String)body.get("nombre");
+        String descripcion = (String)body.get("descripcion");
+        String banner = (String)body.get("banner");
+        String icono = (String)body.get("icono");
+
+        if(nombre != null && !nombre.isBlank())
+        {
+            //Verifica que el nuevo nombre no este tomado por otra comunidad
+            var existente = repositorio_comunidad.findByNombre(nombre.trim());
+
+            if(existente.isPresent() && !existente.get().getId().equals(id))
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", "Ya existe una comunidad con ese nombre"));
+        }
+
+        //Procesa las reglas del body
+        List<Map<String, String>> reglas = null;
+
+        Object reg = body.get("reglas");
+
+        if(reg instanceof List<?> lista)
+        {
+            reglas = new java.util.ArrayList<>();
+
+            for(Object item : lista)
+            {
+                if(item instanceof Map<?, ?> mapa)
+                {
+                    Map<String, String> regla = new java.util.HashMap<>();
+                    Object titulo = mapa.get("titulo");
+                    Object desc = mapa.get("descripcion");
+
+                    if(titulo != null && !titulo.toString().isBlank())
+                    {
+                        regla.put("titulo", titulo.toString().trim());
+
+                        if(desc != null && !desc.toString().isBlank())
+                            regla.put("descripcion", desc.toString().trim());
+
+                        reglas.add(regla);
+                    }
+                }
+            }
+
+            if(reglas.isEmpty())
+                reglas = null;
+        }
 
         Query q = Query.query(Criteria.where("_id").is(id));
-        Update u = new Update().set("descripcion", body.get("descripcion")).set("banner", body.get("banner")).set("icono", body.get("icono"));
+        Update u = new Update().set("descripcion", descripcion).set("banner", banner).set("icono", icono).set("reglas", reglas);
 
-        long modificado = mongo_template.updateFirst(q, u, Comunidad.class).getModifiedCount();
+        if(nombre != null && !nombre.isBlank())
+            u.set("nombre", nombre.trim());
 
-        if(modificado > 0)
-            return ResponseEntity.ok(Map.of("mensaje", "Comunidad actualizada"));
+        mongo_template.updateFirst(q, u, Comunidad.class);
 
-        else
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "No se pudo actualizar"));
+        return ResponseEntity.ok(Map.of("mensaje", "Comunidad actualizada"));
     }
 
     @DeleteMapping("/{id}")
