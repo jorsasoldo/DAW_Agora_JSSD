@@ -271,7 +271,9 @@ export default function PanelModeracion({comunidad_id, es_moderador, es_admin_co
             }
         }
 
-        catch {}
+        catch
+        {
+        }
 
         finally
         {
@@ -295,7 +297,9 @@ export default function PanelModeracion({comunidad_id, es_moderador, es_admin_co
             }
         }
 
-        catch {}
+        catch
+        {
+        }
 
         finally
         {
@@ -325,7 +329,9 @@ export default function PanelModeracion({comunidad_id, es_moderador, es_admin_co
             }
         }
 
-        catch {}
+        catch
+        {
+        }
 
         finally
         {

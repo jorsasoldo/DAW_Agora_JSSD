@@ -41,9 +41,19 @@ public class ControladorPublicacion
     }
 
     @GetMapping
-    public ResponseEntity<?> listar(@RequestParam(required = false) String comunidad, @RequestParam(required = false) String autor)
+    public ResponseEntity<?> listar(@RequestParam(required = false) String comunidad, @RequestParam(required = false) String autor, @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "20") int limite, @RequestParam(defaultValue = "nuevo") String orden)
     {
-        Sort sort = Sort.by(Sort.Direction.DESC, "creado_en");
+        //Limita el maximo a 100 por peticion para evitar abusos
+        int tam = Math.min(limite, 100);
+        int skip = pagina * tam;
+
+        Sort sort;
+        if("popular".equals(orden))
+            sort = Sort.by(Sort.Direction.DESC, "puntaje_votos");
+
+        else
+            sort = Sort.by(Sort.Direction.DESC, "creado_en");
+
         List<Publicacion> lista;
 
         if(comunidad != null && comunidad.matches("[0-9a-fA-F]{24}"))
@@ -55,7 +65,17 @@ public class ControladorPublicacion
         else
             lista = repositorio_publicacion.findAll(sort);
 
-        return ResponseEntity.ok(lista.stream().map(this::nodo_publicacion).toList());
+        long total = lista.size();
+        List<Publicacion> pagina_lista = lista.stream().skip(skip).limit(tam).toList();
+
+        Map<String, Object> respuesta = new java.util.LinkedHashMap<>();
+        respuesta.put("publicaciones", pagina_lista.stream().map(this::nodo_publicacion).toList());
+        respuesta.put("total", total);
+        respuesta.put("pagina", pagina);
+        respuesta.put("limite", tam);
+        respuesta.put("hay_mas", (skip + tam) < total);
+
+        return ResponseEntity.ok(respuesta);
     }
 
     @GetMapping("/{id}")

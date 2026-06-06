@@ -67,6 +67,9 @@ export default function PaginaComunidad()
     const [cargandoSuscripcion, setCargandoSuscripcion] = useState(false)
     const [orden, setOrden] = useState('nuevo')
     const navigate = useNavigate()
+    const [cargandoMas, setCargandoMas] = useState(false)
+    const [pagina, setPagina] = useState(0)
+    const [hayMas, setHayMas] = useState(false)
 
     const carga_comunidad = useCallback(async () =>
     {
@@ -129,32 +132,34 @@ export default function PaginaComunidad()
         }
     }, [id, usuario])
 
-    const carga_publicaciones = useCallback(async () =>
+    const carga_publicaciones = useCallback(async (num_pagina, orden_actual, acumular) =>
     {
-        setCargandoPubs(true)
+        if(num_pagina === 0)
+            setCargandoPubs(true)
+
+        else
+            setCargandoMas(true)
 
         try
         {
-            const resp = await fetch('/api/publicaciones', {credentials: 'include'})
+            const resp = await fetch(`/api/publicaciones?comunidad=${id}&pagina=${num_pagina}&limite=20&orden=${orden_actual}`, {credentials: 'include'})
 
             if(!resp.ok)
                 return
 
-            let datos = await resp.json()
+            const datos = await resp.json()
 
-            //Filtra solo las de esta comunidad
-            datos = datos.filter(p => p.comunidad === id)
+            const listad = Array.isArray(datos) ? datos : (datos.publicaciones || [])
+            const mas= Array.isArray(datos) ? false : (datos.hay_mas ?? false)
 
-            if(orden === 'popular')
-                datos = [...datos].sort((a, b) => b.puntaje_votos - a.puntaje_votos)
+            //Fijadas siempre van primero
+            let lista = num_pagina === 0 ? [...listad.filter(p => p.fijada), ...listad.filter(p => !p.fijada)] : listad
 
-            //Muestra las fijadas primero
-            datos = [...datos.filter(p => p.fijada), ...datos.filter(p => !p.fijada)]
+            setPublicaciones(prev => acumular ? [...prev, ...lista] : lista)
+            setHayMas(mas)
 
-            setPublicaciones(datos)
-
-            //Encuentra nombres de autores
-            const id_autor = [...new Set(datos.map(p => p.autor).filter(Boolean))]
+            //Resuelve nombres de autores
+            const id_autor = [...new Set(lista.map(p => p.autor).filter(Boolean))]
 
             const mapa = {}
 
@@ -168,18 +173,16 @@ export default function PaginaComunidad()
                         if(resp.ok)
                         {
                             const usuario = await resp.json()
-
                             mapa[id_autor] = usuario.nombre_usuario || id_autor
                         }
                     }
-
                     catch
                     {
                     }
                 })
             )
 
-            setNombresAutores(mapa)
+            setNombresAutores(prev => ({...prev, ...mapa}))
         }
 
         catch
@@ -189,12 +192,25 @@ export default function PaginaComunidad()
         finally
         {
             setCargandoPubs(false)
+            setCargandoMas(false)
         }
-    }, [id, orden])
+    }, [id])
 
     useEffect(() => {carga_comunidad()}, [carga_comunidad])
 
-    useEffect(() => {carga_publicaciones()}, [carga_publicaciones])
+    useEffect(() =>
+    {
+        setPagina(0)
+        setPublicaciones([])
+        carga_publicaciones(0, orden, false)
+    }, [carga_publicaciones, orden])
+
+    function cargar_mas_pubs()
+    {
+        const siguiente = pagina + 1
+        setPagina(siguiente)
+        carga_publicaciones(siguiente, orden, true)
+    }
 
     async function maneja_suscripcion()
     {
@@ -377,19 +393,6 @@ export default function PaginaComunidad()
                         )
                     }
 
-                    {!cargandoPubs && publicaciones.length === 0 &&
-                        (
-                            <div className="pagina-inicio-estado">
-                                <p className="pagina-inicio-estado-texto">
-                                    Esta comunidad no tiene publicaciones todavía
-                                </p>
-                                <Link to={`/publicar?comunidad=${id}`} className="btn-primary pagina-inicio-btn-crear">
-                                    Crear la primera publicación
-                                </Link>
-                            </div>
-                        )
-                    }
-
                     {!cargandoPubs && publicaciones.length > 0 &&
                         (
                             <div className="pagina-inicio-lista">
@@ -405,6 +408,33 @@ export default function PaginaComunidad()
                                         />
                                     )
                                 )}
+                            </div>
+                        )
+                    }
+
+                    {!cargandoPubs && hayMas &&
+                        (
+                            <div className="pagina-inicio-estado">
+                                <button
+                                    className="btn-primary"
+                                    onClick={cargar_mas_pubs}
+                                    disabled={cargandoMas}
+                                >
+                                    {cargandoMas
+                                        ? <><span className="pagina-inicio-spinner pagina-inicio-spinner--pequeno" /> Cargando...</>
+                                        : 'Cargar más publicaciones'
+                                    }
+                                </button>
+                            </div>
+                        )
+                    }
+
+                    {!cargandoPubs && !hayMas && publicaciones.length >= 20 &&
+                        (
+                            <div className="pagina-inicio-estado">
+                                <p className="pagina-inicio-estado-texto pagina-inicio-estado-texto--fin">
+                                    Has visto todas las publicaciones
+                                </p>
                             </div>
                         )
                     }
@@ -468,9 +498,11 @@ export default function PaginaComunidad()
                                                 {ind + 1}. {regla.titulo}
                                             </span>
 
-                                            {regla.descripcion && (
-                                                <p className="comunidad-sidebar-regla-desc">{regla.descripcion}</p>
-                                            )}
+                                            {regla.descripcion &&
+                                                (
+                                                    <p className="comunidad-sidebar-regla-desc">{regla.descripcion}</p>
+                                                )
+                                            }
                                         </li>
                                     )
                                 )}
