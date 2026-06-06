@@ -29,6 +29,7 @@ export default function PanelModeracion({comunidad_id, es_moderador, es_privada,
     const [exitoInvitar, setExitoInvitar] = useState(false)
     const [mostrarDropdownInvitar, setMostrarDropdownInvitar] = useState(false)
     const refBuscadorInvitar = useRef(null)
+    const debounceInvitar = useRef(null)
 
     const [mostrarModalEditar, setMostrarModalEditar] = useState(false)
     const [editNombre, setEditNombre] = useState('')
@@ -294,14 +295,17 @@ export default function PanelModeracion({comunidad_id, es_moderador, es_privada,
 
     async function busca_usuarios_para_invitar(q)
     {
-        if(!q || q.length < 2)
+        if(!q || q.trim().length < 2)
+        {
+            setUsuariosCargados([])
             return
+        }
 
         setCargandoInvitar(true)
 
         try
         {
-            const resp = await fetch(`/api/busqueda?q=${encodeURIComponent(q)}&tipo=usuario`, {credentials: 'include'})
+            const resp = await fetch(`/api/buscar?q=${encodeURIComponent(q)}`, {credentials: 'include'})
 
             if(resp.ok)
             {
@@ -924,9 +928,20 @@ export default function PanelModeracion({comunidad_id, es_moderador, es_privada,
                                                     className="modal-campo-input"
                                                     placeholder={cargandoInvitar ? 'Cargando usuarios…' : 'Buscar por nombre de usuario'}
                                                     value={busquedaInvitar}
-                                                    onChange={e => { setBusquedaInvitar(e.target.value); setMostrarDropdownInvitar(true); busca_usuarios_para_invitar(e.target.value)}}
+                                                    onChange={e =>
+                                                    {
+                                                        const val = e.target.value
+                                                        setBusquedaInvitar(val)
+                                                        setMostrarDropdownInvitar(true)
+
+                                                        clearTimeout(debounceInvitar.current)
+                                                        debounceInvitar.current = setTimeout(() =>
+                                                        {
+                                                            busca_usuarios_para_invitar(val)
+                                                        }, 300)
+                                                    }}
                                                     onFocus={() => setMostrarDropdownInvitar(true)}
-                                                    disabled={exitoInvitar || cargandoInvitar}
+                                                    disabled={exitoInvitar}
                                                     autoComplete="off"
                                                 />
 
