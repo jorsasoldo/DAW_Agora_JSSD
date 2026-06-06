@@ -34,9 +34,6 @@ export default function Inicio()
             if(orden === 'popular')
                 datos = [...datos].sort((a, b) => b.puntaje_votos - a.puntaje_votos)
 
-            //Las publicaciones fijadas van siempre primero
-            datos = [...datos.filter(p => p.fijada), ...datos.filter(p => !p.fijada)]
-
             setPublicaciones(datos)
 
             //Resuelve nombres de comunidades y autores
