@@ -64,16 +64,14 @@ export default function PaginaPublicacion()
 
         try
         {
-            //Busca la publicacion en el listado general
-            const resp = await fetch('/api/publicaciones', {credentials: 'include'})
+            const resp = await fetch(`/api/publicaciones/${id}`, {credentials: 'include'})
 
             if(!resp.ok)
                 throw new Error(`Error ${resp.status} al cargar la publicación`)
 
-            const todas = await resp.json()
-            const pub = todas.find(p => p.id === id)
+            const pub = await resp.json()
 
-            if(!pub)
+            if(!pub || !pub.id)
                 throw new Error('Publicación no encontrada')
 
             setPublicacion(pub)

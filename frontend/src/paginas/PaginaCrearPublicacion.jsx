@@ -54,12 +54,21 @@ export default function PaginaCrearPublicacion()
             if(resp.ok)
             {
                 const datos = await resp.json()
-                setComunidades(datos)
+
+                const lista = Array.isArray(datos) ? datos : Array.isArray(datos?.comunidades) ? datos.comunidades : []
+
+                setComunidades(lista)
+            }
+
+            else
+            {
+                setComunidades([])
             }
         }
 
         catch
         {
+            setComunidades([])
         }
 
         finally
@@ -209,7 +218,11 @@ export default function PaginaCrearPublicacion()
                 return
             }
 
-            navigate(`/p/${datos.id}`)
+            if(datos.id)
+                navigate(`/p/${datos.id}`)
+
+            else
+                setError('La publicación se creó pero no se pudo redirigir')
         }
 
         catch
@@ -279,7 +292,7 @@ export default function PaginaCrearPublicacion()
                                 (
                                     <div className="publicar-comunidad-seleccionada">
                                         <span className="publicar-comunidad-chip">
-                                            c/{comunidadNombre || comunidades.find(c => c.id === comunidadId)?.nombre || comunidadId}
+                                            c/{comunidadNombre || (Array.isArray(comunidades) ? comunidades.find(c => c.id === comunidadId)?.nombre : null) || comunidadId}
                                         </span>
                                         <button
                                             type="button"
@@ -310,7 +323,7 @@ export default function PaginaCrearPublicacion()
                             {mostrarSugerencias && !comunidadId &&
                                 (
                                     <div className="publicar-comunidad-dropdown">
-                                        {comunidades
+                                        {(Array.isArray(comunidades) ? comunidades : [])
                                             .filter(c => c.nombre.toLowerCase().includes(busquedaComunidad.toLowerCase()))
                                             .map(c =>
                                                 (
@@ -324,7 +337,7 @@ export default function PaginaCrearPublicacion()
                                                 )
                                             )
                                         }
-                                        {comunidades.filter(c => c.nombre.toLowerCase().includes(busquedaComunidad.toLowerCase())).length === 0 &&
+                                        {(Array.isArray(comunidades) ? comunidades : []).filter(c => c.nombre.toLowerCase().includes(busquedaComunidad.toLowerCase())).length === 0 &&
                                             <div className="publicar-comunidad-vacio">Sin resultados</div>
                                         }
                                     </div>
