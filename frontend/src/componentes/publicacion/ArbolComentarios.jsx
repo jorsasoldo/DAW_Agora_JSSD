@@ -7,6 +7,8 @@ import ComponenteVotos from './ComponenteVotos.jsx'
 
 import {FormularioComentario} from '../../paginas/PaginaPublicacion.jsx'
 
+const raices_por_pagina = 5
+
 //Formatea la fecha/hora de cada publicacion
 //(Recicle la misma funcion de tiempo relativo que en la clase de la tarjeta de publicacion)
 function tiempo_relativo(fecha)
@@ -240,6 +242,8 @@ function NodoComentario({comentario, mapa_hijos, publicacion_id, al_comentar, es
 
 export default function ArbolComentarios({comentarios, publicacion_id, al_comentar, es_moderador = false})
 {
+    const [raices_visibles, setRaicesVisibles] = useState(raices_por_pagina)
+
     const mapa_hijos = {}
 
     const raices = []
@@ -265,9 +269,42 @@ export default function ArbolComentarios({comentarios, publicacion_id, al_coment
     if(raices.length === 0)
         return null
 
+    const raices_a_mostrar = raices.slice(0, raices_visibles)
+    const hay_mas = raices_visibles < raices.length
+
+    function cargar_mas()
+    {
+        setRaicesVisibles(prev => prev + raices_por_pagina)
+    }
+
     return (
                 <div className="arbol-comentarios">
-                    {raices.map(comentario => (<NodoComentario key={comentario.id} comentario={comentario} mapa_hijos={mapa_hijos} publicacion_id={publicacion_id} al_comentar={al_comentar} es_moderador={es_moderador} profundidad={0}/>))}
+                    {raices_a_mostrar.map(comentario =>
+                        (
+                            <NodoComentario
+                                key={comentario.id}
+                                comentario={comentario}
+                                mapa_hijos={mapa_hijos}
+                                publicacion_id={publicacion_id}
+                                al_comentar={al_comentar}
+                                es_moderador={es_moderador}
+                                profundidad={0}
+                            />
+                        )
+                    )}
+
+                    {hay_mas &&
+                        (
+                            <div className="pagina-inicio-estado">
+                                <button
+                                    className="btn-primary"
+                                    onClick={cargar_mas}
+                                >
+                                    Cargar más comentarios
+                                </button>
+                            </div>
+                        )
+                    }
                 </div>
             )
 }
