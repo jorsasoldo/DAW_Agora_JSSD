@@ -54,26 +54,65 @@ public class ControladorPublicacion
         else
             sort = Sort.by(Sort.Direction.DESC, "creado_en");
 
-        List<Publicacion> lista;
+        List<Publicacion> todas;
 
         if(comunidad != null && comunidad.matches("[0-9a-fA-F]{24}"))
-            lista = repositorio_publicacion.findByComunidad(new ObjectId(comunidad), sort);
+            todas = repositorio_publicacion.findByComunidad(new ObjectId(comunidad), sort);
 
         else if(autor != null && autor.matches("[0-9a-fA-F]{24}"))
-            lista = repositorio_publicacion.findByAutor(new ObjectId(autor), sort);
+            todas = repositorio_publicacion.findByAutor(new ObjectId(autor), sort);
 
         else
-            lista = repositorio_publicacion.findAll(sort);
+            todas = repositorio_publicacion.findAll(sort);
 
-        long total = lista.size();
-        List<Publicacion> pagina_lista = lista.stream().skip(skip).limit(tam).toList();
+        //Separa las fijadas del resto
+        List<Publicacion> fijadas = todas.stream().filter(p -> Boolean.TRUE.equals(p.getFijada())).toList();
+        List<Publicacion> normales = todas.stream().filter(p -> !Boolean.TRUE.equals(p.getFijada())).toList();
+
+        long total;
+        List<Publicacion> pagina_lista;
+
+
+        if(pagina == 0)
+        {
+            //Si es la primera pagina se muestran primero las fijadas y luego el resto hasta el limite
+            int espacio_normales = Math.max(0, tam - fijadas.size());
+            List<Publicacion> normales_pagina = normales.stream().limit(espacio_normales).toList();
+
+            pagina_lista = new java.util.ArrayList<>();
+            pagina_lista.addAll(fijadas);
+            pagina_lista.addAll(normales_pagina);
+
+            total = fijadas.size() + normales.size();
+        }
+
+        else
+        {
+            //Si no solo solo las normales
+            int espacio_pagina_0 = Math.max(0, tam - fijadas.size());
+            int skip_normales = espacio_pagina_0 + (pagina - 1) * tam;
+
+            pagina_lista = normales.stream().skip(skip_normales).limit(tam).toList();
+            total = fijadas.size() + normales.size();
+        }
+
+        long mostradas_hasta_ahora;
+
+        if(pagina == 0)
+            mostradas_hasta_ahora = pagina_lista.size();
+
+        else
+        {
+            int espacio_pagina_0 = Math.max(0, tam - fijadas.size());
+            mostradas_hasta_ahora = fijadas.size() + espacio_pagina_0 + (long)(pagina - 1) * tam + pagina_lista.size();
+        }
 
         Map<String, Object> respuesta = new java.util.LinkedHashMap<>();
         respuesta.put("publicaciones", pagina_lista.stream().map(this::nodo_publicacion).toList());
         respuesta.put("total", total);
         respuesta.put("pagina", pagina);
         respuesta.put("limite", tam);
-        respuesta.put("hay_mas", (skip + tam) < total);
+        respuesta.put("hay_mas", mostradas_hasta_ahora < total);
 
         return ResponseEntity.ok(respuesta);
     }

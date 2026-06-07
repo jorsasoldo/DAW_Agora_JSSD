@@ -153,7 +153,7 @@ export default function PaginaComunidad()
             const mas= Array.isArray(datos) ? false : (datos.hay_mas ?? false)
 
             //Fijadas siempre van primero
-            let lista = num_pagina === 0 ? [...listad.filter(p => p.fijada), ...listad.filter(p => !p.fijada)] : listad
+            let lista = listad
 
             setPublicaciones(prev => acumular ? [...prev, ...lista] : lista)
             setHayMas(mas)
