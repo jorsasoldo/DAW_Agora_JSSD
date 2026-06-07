@@ -79,13 +79,13 @@ export default function PaginaPerfil()
 
         try
         {
-            const resp = await fetch('/api/publicaciones', {credentials: 'include'})
+            const resp = await fetch(`/api/publicaciones?autor=${encodeURIComponent(perfil.id)}&limite=100`, {credentials: 'include'})
 
             if(!resp.ok)
                 return
 
-            const todas = await resp.json()
-            const del_usuario = todas.filter(p => p.autor === perfil.id)
+            const datos = await resp.json()
+            const del_usuario = datos.publicaciones ?? []
 
             setPublicaciones(del_usuario)
 
@@ -104,7 +104,6 @@ export default function PaginaPerfil()
                         if(res.ok)
                         {
                             const c = await res.json()
-
                             mapa_comunidades[id] = c.nombre || id
                         }
                     }
@@ -117,7 +116,6 @@ export default function PaginaPerfil()
             )
 
             setNombresComunidades(mapa_comunidades)
-
             setNombresAutores({[perfil.id]: perfil.nombre_usuario})
         }
 

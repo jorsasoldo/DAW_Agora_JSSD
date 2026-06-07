@@ -62,13 +62,19 @@ public class ControladorUsuario
     public ResponseEntity<?> actualizar(@PathVariable String id, @RequestBody Map<String, String> body, HttpServletRequest req)
     {
         String idAutenticado = (String)req.getAttribute("jwt_usuario_id");
-        String rol =(String) req.getAttribute("jwt_rol");
+        String rol = (String) req.getAttribute("jwt_rol");
 
         if(!id.equals(idAutenticado) && !"admin".equals(rol))
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "No tienes permiso para actualizar este perfil"));
 
-        String biografia  = body.get("biografia");
-        String foto_perfil = body.get("foto_perfil");
+        String biografia   = body.getOrDefault("biografia", "");
+        String foto_perfil = body.getOrDefault("foto_perfil", "");
+
+        if(biografia   == null)
+            biografia   = "";
+
+        if(foto_perfil == null)
+            foto_perfil = "";
 
         Query q = Query.query(Criteria.where("_id").is(new ObjectId(id)));
         Update u = new Update().set("biografia", biografia).set("foto_perfil", foto_perfil);
