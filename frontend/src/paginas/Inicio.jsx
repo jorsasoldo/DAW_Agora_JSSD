@@ -215,7 +215,7 @@ export default function Inicio()
                                             disabled={cargandoMas}
                                         >
                                             {cargandoMas
-                                                ? <><span className="pagina-inicio-spinner pagina-inicio-spinner--pequeno" /> Cargando...</>
+                                                ? 'Cargando...'
                                                 : 'Cargar más publicaciones'
                                             }
                                         </button>
