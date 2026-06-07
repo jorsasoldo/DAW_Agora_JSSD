@@ -65,13 +65,14 @@ public class ControladorPublicacion
         else
             todas = repositorio_publicacion.findAll(sort);
 
-        //Separa las fijadas del resto
-        List<Publicacion> fijadas = todas.stream().filter(p -> Boolean.TRUE.equals(p.getFijada())).toList();
-        List<Publicacion> normales = todas.stream().filter(p -> !Boolean.TRUE.equals(p.getFijada())).toList();
+        //Separa las fijadas del resto solo si se esta filtrando por una comunidad
+        boolean aplica_fijadas = comunidad != null && comunidad.matches("[0-9a-fA-F]{24}");
+
+        List<Publicacion> fijadas = aplica_fijadas ? todas.stream().filter(p -> Boolean.TRUE.equals(p.getFijada())).toList() : List.of();
+        List<Publicacion> normales = aplica_fijadas ? todas.stream().filter(p -> !Boolean.TRUE.equals(p.getFijada())).toList() : todas;
 
         long total;
         List<Publicacion> pagina_lista;
-
 
         if(pagina == 0)
         {
