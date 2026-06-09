@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/publicaciones")
@@ -44,6 +45,9 @@ public class ControladorPublicacion
     @GetMapping
     public ResponseEntity<?> listar(@RequestParam(required = false) String comunidad, @RequestParam(required = false) String autor, @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "20") int limite, @RequestParam(defaultValue = "nuevo") String orden, HttpServletRequest req)
     {
+        String id_usuario = (String) req.getAttribute("jwt_usuario_id");
+        String rol = (String) req.getAttribute("jwt_rol");
+
         //Limita el maximo a 100 por peticion para evitar abusos
         int tam = Math.min(limite, 100);
         int skip = pagina * tam;
@@ -61,14 +65,29 @@ public class ControladorPublicacion
             todas = repositorio_publicacion.findByComunidad(new ObjectId(comunidad), sort);
 
         else if(autor != null && autor.matches("[0-9a-fA-F]{24}"))
-            todas = repositorio_publicacion.findByAutor(new ObjectId(autor), sort);
+        {
+            List<Comunidad> todas_comunidades = repositorio_comunidad.findAll();
+            Set<String> ids_privadas = todas_comunidades.stream().filter(Comunidad::getEsPrivada).map(Comunidad::getId).collect(java.util.stream.Collectors.toSet());
+
+            List<String> comunidades_usuario = List.of();
+
+            if(id_usuario != null)
+            {
+                agora.modelo.Usuario u = mongo_template.findById(new org.bson.types.ObjectId(id_usuario), agora.modelo.Usuario.class);
+
+                if(u != null && u.getComunidadesSuscritas() != null)
+                    comunidades_usuario = u.getComunidadesSuscritas();
+            }
+
+            final List<String> accesibles = comunidades_usuario;
+            final boolean es_admin_rol = "admin".equals(rol);
+
+            todas = repositorio_publicacion.findByAutor(new ObjectId(autor), sort).stream().filter(p -> {String id_com = p.getComunidad();if(id_com == null) return true;if(!ids_privadas.contains(id_com)) return true;if(es_admin_rol) return true;if(autor.equals(id_usuario)) return true;return accesibles.contains(id_com);}).toList();
+        }
 
         else
         {
             //Obtiene las comunidades a las que pertenece el usuario autenticado (si lo hay)
-            String id_usuario = (String) req.getAttribute("jwt_usuario_id");
-            String rol = (String) req.getAttribute("jwt_rol");
-
             List<String> comunidades_usuario = List.of();
 
             if(id_usuario != null)
