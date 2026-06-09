@@ -39,9 +39,12 @@ public class ControladorComunidad
     }
 
     @GetMapping
-    public ResponseEntity<?> listar()
+    public ResponseEntity<?> listar(HttpServletRequest req)
     {
-        List<Comunidad> lista = repositorio_comunidad.findAll().stream().filter(c -> !c.getEsPrivada()).toList();
+        String rol = (String) req.getAttribute("jwt_rol");
+        boolean es_admin = "admin".equals(rol);
+
+        List<Comunidad> lista = repositorio_comunidad.findAll().stream().filter(c -> !c.getEsPrivada() || es_admin).toList();
 
         return ResponseEntity.ok(lista.stream().map(this::nodo_comunidad).toList());
     }
@@ -310,8 +313,8 @@ public class ControladorComunidad
         if(!mod_id.matches("[0-9a-fA-F]{24}"))
             return ResponseEntity.badRequest().body(Map.of("error", "Id de moderador inválido"));
 
-        //No permite que el creador se quite a sí mismo como mod
-        if(mod_id.equals(c.getCreadoPor()))
+        //El creador de la comunidad no puede ser quitado como mod pero el admin del sistema si puede hacerlo
+        if(mod_id.equals(c.getCreadoPor()) && !es_admin_sistema)
             return ResponseEntity.badRequest().body(Map.of("error", "No puedes eliminar al administrador de la comunidad"));
 
         Query q = Query.query(Criteria.where("_id").is(id));
@@ -338,7 +341,8 @@ public class ControladorComunidad
         if(!miembro_id.matches("[0-9a-fA-F]{24}"))
             return ResponseEntity.badRequest().body(Map.of("error", "Id de miembro inválido"));
 
-        if(miembro_id.equals(c.getCreadoPor()))
+        //Solo el admin del sistema puede expulsar al creador de la comunidad
+        if(miembro_id.equals(c.getCreadoPor()) && !es_admin_sistema)
             return ResponseEntity.badRequest().body(Map.of("error", "No puedes expulsar al administrador de la comunidad"));
 
         //Verifica si era miembro antes de modificar

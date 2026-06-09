@@ -66,7 +66,7 @@ public class ControladorBusqueda
         final Set<String> comunidades_accesibles = comunidades_usuario;
         final boolean es_admin = "admin".equals(rol);
 
-        List<Map<String, Object>> comunidades = repositorio_comunidad.buscarPorTexto(termino).stream().filter(c -> !c.getEsPrivada()).map(c -> Map.<String, Object>of("id", c.getId() != null ? c.getId() : "", "nombre", c.getNombre() != null ? c.getNombre() : "", "descripcion", c.getDescripcion() != null ? c.getDescripcion() : "", "icono", c.getIcono() != null ? c.getIcono() : "", "total_miembros", c.getTotalMiembros(), "es_privada", c.getEsPrivada())).toList();
+        List<Map<String, Object>> comunidades = repositorio_comunidad.buscarPorTexto(termino).stream().filter(c -> !c.getEsPrivada() || es_admin).map(c -> Map.<String, Object>of("id", c.getId() != null ? c.getId() : "", "nombre", c.getNombre() != null ? c.getNombre() : "", "descripcion", c.getDescripcion() != null ? c.getDescripcion() : "", "icono", c.getIcono() != null ? c.getIcono() : "", "total_miembros", c.getTotalMiembros(), "es_privada", c.getEsPrivada())).toList();
 
         List<Map<String, Object>> publicaciones = repositorio_publicacion.findByTituloContainingIgnoreCase(termino, Sort.by(Sort.Direction.DESC, "creado_en")).stream().filter(p ->
                 {

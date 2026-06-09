@@ -297,8 +297,9 @@ export default function PaginaComunidad()
         )
     }
 
-    const es_admin_comunidad = usuario && comunidad?.creado_por === usuario.id
-    const es_moderador = usuario && comunidad?.moderadores?.includes(usuario.id)
+    const es_admin_sistema = usuario?.rol === 'admin'
+    const es_admin_comunidad = usuario && (comunidad?.creado_por === usuario.id || es_admin_sistema)
+    const es_moderador = usuario && (comunidad?.moderadores?.includes(usuario.id) || es_admin_sistema)
 
     const nombres_comunidad = comunidad ? {[id]: comunidad.nombre} : {}
 

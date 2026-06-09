@@ -331,12 +331,12 @@ export default function PaginaPublicacion()
                 //Panel de moderacion
             }
 
-            {usuario && comnidad && (comnidad?.moderadores?.includes(usuario?.id) || usuario?.rol === 'admin') &&
+            {usuario && comnidad && (comnidad?.moderadores?.includes(usuario?.id) || usuario?.rol === 'admin' || comnidad?.creado_por === usuario?.id) &&
                 (
                     <div className="pagina-publicacion-acciones-mod">
                         <PanelModeracion
                             comunidad_id={publicacion?.comunidad}
-                            es_moderador={comnidad?.moderadores?.includes(usuario?.id) ?? false}
+                            es_moderador={comnidad?.moderadores?.includes(usuario?.id) || usuario?.rol === 'admin'}
                             publicacion={{ id, ...estadoPublicacion }}
                             al_actualizar={campos => setEstadoPublicacion(prev => ({ ...prev, ...campos}))}
                         />
@@ -418,7 +418,7 @@ export default function PaginaPublicacion()
                                 comentarios={comentarios}
                                 publicacion_id={id}
                                 al_comentar={inserta_comentario_nuevo}
-                                es_moderador={comnidad?.moderadores?.includes(usuario?.id) ?? false}
+                                es_moderador={comnidad?.moderadores?.includes(usuario?.id) || usuario?.rol === 'admin'}
                             />
                         )
                 }
