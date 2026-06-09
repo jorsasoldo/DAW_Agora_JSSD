@@ -331,7 +331,7 @@ export default function PaginaPublicacion()
                 //Panel de moderacion
             }
 
-            {usuario && comnidad && (comnidad?.moderadores?.includes(usuario?.id) || usuario?.rol === 'admin' || comnidad?.creado_por === usuario?.id) &&
+            {usuario && comnidad && (comnidad?.moderadores?.includes(usuario?.id) || usuario?.rol === 'admin' || usuario?.id === autor) &&
                 (
                     <div className="pagina-publicacion-acciones-mod">
                         <PanelModeracion

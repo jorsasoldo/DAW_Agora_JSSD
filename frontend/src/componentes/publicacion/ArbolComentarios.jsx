@@ -170,7 +170,7 @@ function NodoComentario({comentario, mapa_hijos, publicacion_id, al_comentar, es
                                     )
                                 }
 
-                                {es_moderador && !eliminadoLocal &&
+                                {(es_moderador || usuario?.id === comentario.autor) && !eliminadoLocal &&
                                     (
                                         confirmandoEliminar ?
                                             (
