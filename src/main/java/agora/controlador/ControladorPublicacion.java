@@ -2,6 +2,7 @@ package agora.controlador;
 
 import agora.modelo.Comunidad;
 import agora.modelo.Publicacion;
+import agora.modelo.Usuario;
 
 import agora.repositorio.RepositorioComunidad;
 import agora.repositorio.RepositorioPublicacion;
@@ -41,7 +42,7 @@ public class ControladorPublicacion
     }
 
     @GetMapping
-    public ResponseEntity<?> listar(@RequestParam(required = false) String comunidad, @RequestParam(required = false) String autor, @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "20") int limite, @RequestParam(defaultValue = "nuevo") String orden)
+    public ResponseEntity<?> listar(@RequestParam(required = false) String comunidad, @RequestParam(required = false) String autor, @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "20") int limite, @RequestParam(defaultValue = "nuevo") String orden, HttpServletRequest req)
     {
         //Limita el maximo a 100 por peticion para evitar abusos
         int tam = Math.min(limite, 100);
@@ -63,7 +64,48 @@ public class ControladorPublicacion
             todas = repositorio_publicacion.findByAutor(new ObjectId(autor), sort);
 
         else
-            todas = repositorio_publicacion.findAll(sort);
+        {
+            //Obtiene las comunidades a las que pertenece el usuario autenticado (si lo hay)
+            String id_usuario = (String) req.getAttribute("jwt_usuario_id");
+            String rol = (String) req.getAttribute("jwt_rol");
+
+            List<String> comunidades_usuario = List.of();
+
+            if(id_usuario != null)
+            {
+                Usuario u = mongo_template.findById(new ObjectId(id_usuario), Usuario.class);
+
+                if(u != null && u.getComunidadesSuscritas() != null)
+                    comunidades_usuario = u.getComunidadesSuscritas();
+            }
+
+            final List<String> comunidades_accesibles = comunidades_usuario;
+
+            //Obtiene todas las publicaciones y filtra las de comunidades privadas
+            //Solo se muestran las de comunidades publicas o las de comunidades privadas a las que el usuario pertenece
+            List<String> ids_comunidades_privadas_accesibles = comunidades_accesibles;
+
+            List<Comunidad> todas_comunidades = repositorio_comunidad.findAll();
+            List<String> ids_comunidades_privadas = todas_comunidades.stream().filter(c -> c.getEsPrivada()).map(Comunidad::getId).toList();
+
+            todas = repositorio_publicacion.findAll(sort).stream().filter(p ->
+                    {
+                        String id_com = p.getComunidad();
+
+                        if(id_com == null)
+                            return true;
+
+                        //Si la comunidad es publica siempre se muestra
+                        if(!ids_comunidades_privadas.contains(id_com))
+                            return true;
+
+                        //Si la comunidad es privada solo se muestra si el usuario es admin o es miembro
+                        if("admin".equals(rol))
+                            return true;
+
+                        return ids_comunidades_privadas_accesibles.contains(id_com);
+                    }).toList();
+        }
 
         //Separa las fijadas del resto solo si se esta filtrando por una comunidad
         boolean aplica_fijadas = comunidad != null && comunidad.matches("[0-9a-fA-F]{24}");
